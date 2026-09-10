@@ -17,15 +17,15 @@ URL prevista:
 
 - Visibilidad del repositorio: puede ser público para el piloto **si sólo contiene código y documentación genérica**.
 - Rama: `main`.
-- GitHub Pages: `main / root`.
-- No usar Actions inicialmente.
+- GitHub Pages: **Source = GitHub Actions**; workflow `.github/workflows/deploy-pages.yml`.
 - No almacenar datos reales en el repositorio.
 
 ## Campaña P0–P5
 
 ### P0 — Despliegue
 
-- publicar GitHub Pages;
+- habilitar GitHub Pages con Source = GitHub Actions;
+- ejecutar el workflow de despliegue;
 - verificar manifest y service worker;
 - abrir en Safari iPhone, Chrome Android y navegador de escritorio;
 - instalar en al menos un dispositivo.
