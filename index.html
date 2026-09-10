@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f2744" />
+  <meta name="description" content="CATU E-R: PWA ligera para diagnóstico, seguimiento y evidencia del Protocolo Integral de Blindaje Preventivo y Cierre de Administración Municipal." />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="CATU E-R" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="./icons/icon-180.png" />
+  <link rel="icon" href="./icons/icon-192.png" />
+  <link rel="stylesheet" href="./styles.css" />
+  <title>CATU E-R | Blindaje Preventivo Municipal</title>
+</head>
+<body>
+  <header class="app-header no-print">
+    <div class="brand">
+      <div class="brand-mark">C</div>
+      <div>
+        <strong>CATU E-R</strong>
+        <small>Blindaje preventivo municipal</small>
+      </div>
+    </div>
+    <div class="header-meta">
+      <span id="netBadge" class="badge">En línea</span>
+      <button id="installBtn" class="ghost-btn hidden" type="button">Instalar</button>
+    </div>
+  </header>
+
+  <section class="context-bar no-print">
+    <div>
+      <span class="eyebrow">Espacio de trabajo</span>
+      <strong id="workspaceName">Municipio piloto</strong>
+    </div>
+    <div class="context-right">
+      <span id="roleBadge" class="role-chip">Consultor CATU</span>
+      <span id="baselineBadge" class="baseline-chip warning">R086 pendiente</span>
+    </div>
+  </section>
+
+  <main id="app" class="app-main" aria-live="polite">
+    <div class="loading-card">Cargando baseline normativa C2…</div>
+  </main>
+
+  <nav class="bottom-nav no-print" aria-label="Navegación principal">
+    <button data-view="home" class="nav-btn active"><span>⌂</span><small>Inicio</small></button>
+    <button data-view="controls" class="nav-btn"><span>☑</span><small>Controles</small></button>
+    <button data-view="actions" class="nav-btn"><span>⚑</span><small>Acciones</small></button>
+    <button data-view="evidence" class="nav-btn"><span>▣</span><small>Evidencia</small></button>
+    <button data-view="more" class="nav-btn"><span>•••</span><small>Más</small></button>
+  </nav>
+
+  <dialog id="controlDialog" class="control-dialog">
+    <form method="dialog" class="dialog-shell" id="controlForm">
+      <div class="dialog-head">
+        <div>
+          <span id="dlgId" class="eyebrow">R001</span>
+          <h2 id="dlgTitle">Control</h2>
+        </div>
+        <button class="icon-btn" value="cancel" aria-label="Cerrar">×</button>
+      </div>
+      <div id="dialogBody" class="dialog-body"></div>
+      <div class="dialog-actions">
+        <button type="button" id="saveControlBtn" class="primary-btn">Guardar cambios</button>
+        <button value="cancel" class="secondary-btn">Cerrar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="evidenceDialog" class="control-dialog">
+    <form method="dialog" class="dialog-shell" id="evidenceForm">
+      <div class="dialog-head">
+        <div>
+          <span class="eyebrow">Evidencia de campo</span>
+          <h2>Registrar evidencia</h2>
+        </div>
+        <button class="icon-btn" value="cancel" aria-label="Cerrar">×</button>
+      </div>
+      <div class="dialog-body">
+        <input id="evControlId" type="hidden" />
+        <label class="field">Descripción<input id="evDescription" required placeholder="Ej. Inventario físico verificado" /></label>
+        <label class="field">Enlace al expediente institucional<input id="evLink" type="url" placeholder="https://drive.google.com/... o https://...sharepoint.com/..." /></label>
+        <label class="field">Fotografía local opcional<input id="evPhoto" type="file" accept="image/*" capture="environment" /></label>
+        <p class="hint">La fotografía se comprime y queda sólo en este dispositivo en el modo piloto. Para operación institucional, el expediente debe permanecer en Drive/OneDrive y la PWA conservar metadatos y vínculos.</p>
+      </div>
+      <div class="dialog-actions">
+        <button type="button" id="saveEvidenceBtn" class="primary-btn">Guardar evidencia</button>
+        <button value="cancel" class="secondary-btn">Cerrar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <template id="toastTemplate">
+    <div class="toast"></div>
+  </template>
+  <div id="toastHost" class="toast-host no-print"></div>
+
+  <script src="./app.js" defer></script>
+</body>
+</html>
