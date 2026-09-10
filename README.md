@@ -36,20 +36,17 @@ Para la fase multiusuario se propone mantener exactamente este frontend en GitHu
 
 ## Despliegue en GitHub Pages
 
-Repositorio previsto:
+El repositorio contiene el workflow `.github/workflows/deploy-pages.yml`, por lo que no requiere compilador ni servidor propio. La única activación inicial que debe realizar el propietario desde la interfaz de GitHub es:
 
-`Protocolo_Integral_Blindaje_Preventivo_Cierre_administracion_Municipal`
+1. Abrir **Settings → Pages**.
+2. En **Build and deployment → Source**, seleccionar **GitHub Actions**.
+3. Guardar. Después puede reejecutarse el workflow **Deploy CATU E-R PWA to GitHub Pages**.
 
-Como el proyecto no usa compilador ni dependencias Node, puede publicarse directamente desde la rama `main` y carpeta `/ (root)`.
-
-1. Ir a **Settings → Pages**.
-2. En **Build and deployment**, seleccionar **Deploy from a branch**.
-3. Elegir `main` y `/ (root)` y guardar.
-4. Esperar la publicación y abrir:
+URL esperada del piloto:
 
 `https://aminramirezvilla-hue.github.io/Protocolo_Integral_Blindaje_Preventivo_Cierre_administracion_Municipal/`
 
-La aplicación usa rutas relativas (`./`), por lo que funciona correctamente bajo el subdirectorio de GitHub Pages.
+La aplicación usa rutas relativas (`./`), por lo que funciona bajo el subdirectorio del repositorio.
 
 ## Prueba mínima recomendada
 
