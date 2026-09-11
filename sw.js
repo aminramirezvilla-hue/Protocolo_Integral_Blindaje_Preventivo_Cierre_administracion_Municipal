@@ -1,6 +1,6 @@
-const CACHE = 'catu-er-v0.1.1';
+const CACHE = 'catu-er-v0.1.2';
 const APP_SHELL = [
-  './', './index.html', './styles.css', './manifest.webmanifest',
+  './', './index.html', './styles.css', './print-fix-v012.css', './manifest.webmanifest',
   './js/core.js', './js/views.js', './js/actions.js', './js/patch-evidence-v011.js',
   './data/runtime/controls-1.json', './data/runtime/controls-2.json', './data/runtime/controls-3.json',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-180.png'
