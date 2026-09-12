@@ -3,7 +3,15 @@
 // P4 corrective increment. Loaded only from dev/v0.1.3.
 // Baseline v0.1.2-pilot-stable remains immutable.
 const P4_DEV_VERSION = '0.1.3-dev.1';
+const P4_STORAGE_PREFIX = 'p4-preview::';
 const P4_ACTIONABLE = new Set(['Subsanable','Crítico','No subsanable / posible responsabilidad']);
+
+// Isolate preview data from the stable PWA even though both share the same GitHub Pages origin.
+// IndexedDB is origin-scoped, so the preview namespaces its key explicitly.
+const p4BaseIdbGet = idbGet;
+const p4BaseIdbSet = idbSet;
+idbGet = function(key){ return p4BaseIdbGet(`${P4_STORAGE_PREFIX}${key}`); };
+idbSet = function(key,value){ return p4BaseIdbSet(`${P4_STORAGE_PREFIX}${key}`,value); };
 
 function p4RouteHelpText(){
   const status = $('#dlgStatus')?.value || 'No evaluado';
@@ -53,6 +61,7 @@ loadData = async function(){
     state.version = P4_DEV_VERSION;
     state.workspace ||= {};
     state.workspace.runtimeVersion = P4_DEV_VERSION;
+    state.workspace.storageNamespace = P4_STORAGE_PREFIX;
     await idbSet(STATE_KEY,state);
   }
 };
@@ -63,6 +72,7 @@ saveState = async function(logEntry){
     state.version = P4_DEV_VERSION;
     state.workspace ||= {};
     state.workspace.runtimeVersion = P4_DEV_VERSION;
+    state.workspace.storageNamespace = P4_STORAGE_PREFIX;
   }
   return p4BaseSaveState(logEntry);
 };
@@ -123,5 +133,9 @@ renderMore = function(){
   const securityHeading = headings.find(h=>h.textContent.includes('PWA y seguridad'));
   if(securityHeading && !$('#p4VersionBadge')){
     securityHeading.insertAdjacentHTML('beforeend', ` <span id="p4VersionBadge" class="status-pill info">${P4_DEV_VERSION}</span>`);
+  }
+  const securityCard = securityHeading?.closest('.card');
+  if(securityCard && !$('#p4StorageNote')){
+    securityCard.insertAdjacentHTML('beforeend', '<p id="p4StorageNote" class="hint">Preview P4 aislado: utiliza un espacio IndexedDB separado del piloto estable aunque comparta el mismo dominio GitHub Pages.</p>');
   }
 };
