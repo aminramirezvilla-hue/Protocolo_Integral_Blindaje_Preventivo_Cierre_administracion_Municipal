@@ -35,6 +35,7 @@
 - `EN ANÁLISIS`
 - `CORRECCIÓN EN CURSO`
 - `LISTA PARA RE-PRUEBA`
+- `RE-PRUEBA PARCIAL`
 - `CERRADA`
 - `DIFERIDA`
 - `NO REPRODUCIBLE`
@@ -49,7 +50,7 @@
 **Fecha:** 2026-09-11  
 **Control/módulo afectado:** R019 / Hacienda municipal  
 **Severidad:** S2 — Alta  
-**Estado:** LISTA PARA RE-PRUEBA  
+**Estado:** CERRADA  
 **Versión/rama:** `dev/v0.1.3` — incremento `0.1.3-dev.1`  
 **Dispositivo/navegador:** macOS / Safari
 
@@ -68,11 +69,11 @@ Se incorporó `js/patch-p4-dev1.js`, que bloquea el guardado de controles `Subsa
 **Commit principal de corrección**  
 `02f7c0cb239b4c28ae0a650ae360b0fe17c660fd`
 
-**Re-prueba**  
-Pendiente en preview P4.
+**Re-prueba 2026-09-12**  
+APROBADA. R019, configurado como `Crítico`, mostró advertencia explícita al mantener `Ruta = No aplica` y no permitió consolidar el cambio. Después de seleccionar una ruta válida y capturar fecha compromiso, el control se guardó correctamente y la interfaz confirmó `R019 actualizado`.
 
 **Decisión de cierre**  
-Cerrar sólo si R019 rechaza `Crítico + Ruta No aplica` y permite guardar después de seleccionar una ruta válida.
+CERRADA. Cumple el criterio funcional definido.
 
 ---
 
@@ -81,7 +82,7 @@ Cerrar sólo si R019 rechaza `Crítico + Ruta No aplica` y permite guardar despu
 **Fecha:** 2026-09-11  
 **Control/módulo afectado:** R081 y R086 / Hacienda municipal y Gobernanza normativa  
 **Severidad:** S3 — Media  
-**Estado:** LISTA PARA RE-PRUEBA  
+**Estado:** RE-PRUEBA PARCIAL  
 **Versión/rama:** `dev/v0.1.3` — incremento `0.1.3-dev.1`  
 **Dispositivo/navegador:** macOS / Safari
 
@@ -97,11 +98,12 @@ El parche `patch-p4-dev1.js` impide guardar controles accionables sin fecha comp
 **Commit principal de corrección**  
 `02f7c0cb239b4c28ae0a650ae360b0fe17c660fd`
 
-**Re-prueba**  
-Pendiente en R081 y R086.
+**Re-prueba 2026-09-12**  
+- **R081:** APROBADA. La interfaz mostró la advertencia `Los controles accionables requieren fecha compromiso antes de guardar`; al capturar una fecha válida, el control se guardó y la tarjeta mostró `Compromiso 25 sep 2026`.
+- **R086:** evidencia funcional parcial. Se comprobó la presentación del campo de fecha y, posteriormente, que R086 puede quedar `Conforme` sin quedar cerrado cuando la evidencia continúa `No evaluada`, lo que es consistente con la compuerta especial. No se documentó todavía una captura de R086 en estado accionable intentando guardar con fecha vacía.
 
 **Decisión de cierre**  
-Cerrar si ambos controles bloquean el guardado sin fecha y generan correctamente alertas temporales después de capturarla.
+Mantener en `RE-PRUEBA PARCIAL` hasta ejecutar una prueba mínima de R086 como `Subsanable` o `Crítico`, sin fecha compromiso, y verificar que el guardado sea bloqueado.
 
 ---
 
@@ -137,7 +139,7 @@ Pendiente: verificar insignia `0.1.3-dev.1` y confirmar que un respaldo JSON gen
 **Fecha:** 2026-09-11  
 **Control/módulo:** Transversal; observado en R082  
 **Prioridad:** Alta  
-**Estado:** INCORPORADA / PENDIENTE DE RE-PRUEBA
+**Estado:** INCORPORADA / RE-PRUEBA APROBADA
 
 **Necesidad observada**  
 R082 fue probado con escenario `Documento inexistente` y Ruta B — Regularización documental. Esa combinación puede ser jurídicamente correcta sólo si el hecho/acto existió y lo faltante es su soporte recuperable; no debe interpretarse como autorización para fabricar o retrofechar documentos.
@@ -148,8 +150,8 @@ La interfaz muestra una guía dinámica según la ruta seleccionada. Para `Docum
 **Commit**  
 `02f7c0cb239b4c28ae0a650ae360b0fe17c660fd`
 
-**Re-prueba**  
-Pendiente en R082.
+**Re-prueba 2026-09-12**  
+APROBADA. En R082, con `Documento inexistente + Ruta B`, se mostró la advertencia prevista: sólo procede regularización documental si el hecho o acto realmente existió y puede reconstruirse con fuentes verificables; de lo contrario debe considerarse Ruta C. La interfaz evita inducir fabricación o retrofecha de evidencia.
 
 ---
 
@@ -175,8 +177,8 @@ No se incorpora al incremento correctivo dev.1 para mantener el alcance mínimo 
 
 | ID | Fecha | Control/módulo | Severidad | Resumen | Estado | Commit corrección | Re-prueba |
 |---|---|---|---|---|---|---|---|
-| P4-INC-001 | 2026-09-11 | R019 / Tratamiento | S2 | Control crítico podía guardarse con Ruta `No aplica`. | LISTA PARA RE-PRUEBA | `02f7c0c` | Pendiente |
-| P4-INC-002 | 2026-09-11 | R081/R086 / Seguimiento | S3 | Acciones podían quedar sin fecha compromiso. | LISTA PARA RE-PRUEBA | `02f7c0c` | Pendiente |
+| P4-INC-001 | 2026-09-11 | R019 / Tratamiento | S2 | Control crítico podía guardarse con Ruta `No aplica`. | CERRADA | `02f7c0c` | APROBADA 2026-09-12 |
+| P4-INC-002 | 2026-09-11 | R081/R086 / Seguimiento | S3 | Acciones podían quedar sin fecha compromiso. | RE-PRUEBA PARCIAL | `02f7c0c` | R081 aprobada; R086 pendiente |
 | P4-INC-003 | 2026-09-11 | Configuración / versión | S3 | Metadato runtime no correspondía a la rama vigente. | LISTA PARA RE-PRUEBA | `02f7c0c` | Pendiente |
 
 ---
@@ -185,7 +187,7 @@ No se incorpora al incremento correctivo dev.1 para mantener el alcance mínimo 
 
 | ID | Fecha | Control/módulo | Prioridad | Resumen | Decisión | Versión objetivo |
 |---|---|---|---|---|---|---|
-| P4-MEJ-001 | 2026-09-11 | Transversal / R082 | Alta | Ayuda contextual escenario ↔ rutas A/B/C. | INCORPORADA / re-prueba pendiente | 0.1.3-dev.1 |
+| P4-MEJ-001 | 2026-09-11 | Transversal / R082 | Alta | Ayuda contextual escenario ↔ rutas A/B/C. | INCORPORADA / re-prueba aprobada | 0.1.3-dev.1 |
 | P4-MEJ-002 | 2026-09-11 | Dashboard / Alertas | Media | Agrupar alertas por control sin perder causas. | DIFERIDA A P4.2 | v0.1.3 |
 
 ---
@@ -225,4 +227,19 @@ Incluye:
 - caché Service Worker separada `catu-er-v0.1.3-dev.1`;
 - entorno de preview P4 separado del root estable de GitHub Pages.
 
-**Estado:** LISTO PARA RE-PRUEBA CONTROLADA.
+**Estado posterior a re-prueba 2026-09-12:**
+
+- P4-INC-001: CERRADA.
+- P4-INC-002: RE-PRUEBA PARCIAL; falta R086 sin fecha en estado accionable.
+- P4-INC-003: pendiente de comprobación de versión runtime + JSON.
+- P4-MEJ-001: re-prueba APROBADA.
+
+---
+
+## 11. Observaciones de la re-prueba 2026-09-12
+
+1. R019 confirmó el bloqueo de una combinación incoherente `Crítico + Ruta No aplica` y el guardado posterior con ruta/fecha válidas.
+2. R081 confirmó la obligatoriedad de fecha compromiso y el guardado correcto con fecha válida.
+3. R086 se observó en estado `Conforme` con evidencia `No evaluada`; no quedó cerrado, comportamiento consistente con la compuerta especial R086, pero esto no sustituye la prueba específica de fecha obligatoria cuando R086 sea accionable.
+4. R082 mostró correctamente la advertencia jurídica de Ruta B frente a `Documento inexistente`.
+5. No se aportó aún evidencia visual de `Más → PWA y seguridad` ni del campo `version` en respaldo JSON, por lo que P4-INC-003 permanece abierta para re-prueba.
