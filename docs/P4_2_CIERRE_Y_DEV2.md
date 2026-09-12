@@ -4,7 +4,7 @@
 **Rama:** `dev/v0.1.3`  
 **Baseline protegida:** `v0.1.2-pilot-stable`  
 **Fecha:** 2026-09-12  
-**Estado:** P4.2 APROBADA / dev.2 LISTO PARA RE-PRUEBA
+**Estado:** P4.2 APROBADA / `0.1.3-dev.2` APROBADO
 
 ---
 
@@ -37,15 +37,15 @@ La segunda tanda del piloto ampliado se ejecutó sobre R012, R024, R049 y R070.
 
 ## 2. Hallazgo de usabilidad confirmado
 
-La presencia de 15 alertas con sólo 8 controles evaluados confirma la conveniencia de implementar `P4-MEJ-002 — Agrupar alertas por control con expansión de causas`.
+La presencia de 15 alertas con sólo 8 controles evaluados confirmó la conveniencia de implementar `P4-MEJ-002 — Agrupar alertas por control con expansión de causas`.
 
-El problema no corresponde al motor de reglas: las alertas conservan validez individual. La mejora se limita a presentación y priorización ejecutiva.
+El problema no correspondía al motor de reglas: las alertas conservaban validez individual. La mejora se limitó a presentación y priorización ejecutiva.
 
 ---
 
 ## 3. Incremento `0.1.3-dev.2`
 
-Se implementa un incremento mínimo con los siguientes objetivos:
+Se implementó un incremento mínimo con los siguientes objetivos:
 
 1. Mantener intacta la generación de alertas del motor `metrics()`.
 2. Mostrar una sola tarjeta por control en el dashboard.
@@ -60,9 +60,9 @@ Se implementa un incremento mínimo con los siguientes objetivos:
 
 ## 4. Continuidad de la muestra acumulada
 
-El almacenamiento aislado P4 contiene 8 controles del corte actual y no conserva tres controles previamente evaluados durante P4.1: R001, R015 y R006.
+El almacenamiento aislado P4 contenía 8 controles del corte P4.2 y no conservaba tres controles previamente evaluados durante P4.1: R001, R015 y R006.
 
-Para mantener una muestra acumulada antes de iniciar P4.3, `0.1.3-dev.2` incorpora en `Más → PWA y seguridad` una herramienta piloto denominada **Restaurar 3 controles P4.1**.
+Para mantener una muestra acumulada antes de iniciar P4.3, `0.1.3-dev.2` incorporó en `Más → PWA y seguridad` la herramienta piloto **Restaurar 3 controles P4.1**.
 
 La restauración:
 
@@ -82,29 +82,62 @@ Estos perfiles se usan exclusivamente para continuidad de calibración del pilot
 
 ---
 
-## 5. Criterios de re-prueba dev.2
+## 5. Re-prueba `0.1.3-dev.2`
 
-`0.1.3-dev.2` quedará aprobado si se verifica que:
+### Evidencias observadas el 12-09-2026
 
-1. `Más → PWA y seguridad` muestra `0.1.3-dev.2`.
-2. El dashboard muestra el total de alertas como `N causas · M controles`.
-3. Un control con varias alertas aparece una sola vez y permite desplegar sus causas.
-4. Abrir el control desde la tarjeta agrupada funciona.
-5. El número de causas antes y después de la agrupación no cambia.
-6. La restauración de R001/R015/R006 incrementa el corte acumulado de 8/84 a 11/84, salvo que alguno ya hubiera sido evaluado.
-7. R049 conserva su estatus no subsanable y Ruta C.
-8. El respaldo JSON incluye `version` y `runtimeVersion` iguales a `0.1.3-dev.2`.
+1. `Más → PWA y seguridad` mostró correctamente `0.1.3-dev.2`.
+2. El bloque de continuidad identificó inicialmente R001, R015 y R006 como faltantes.
+3. La acción **Restaurar 3 controles P4.1** solicitó confirmación explícita antes de incorporar datos de prueba.
+4. Tras la restauración, el bloque confirmó que R001, R015 y R006 estaban incorporados a la muestra acumulada.
+5. El dashboard pasó a **11/84 controles evaluados (13 %)**.
+6. Cobertura ponderada de evidencia observada: **8 %**.
+7. Controles críticos: **3**, de los cuales **1 no subsanable**.
+8. Controles cerrados: **2**.
+9. IPER-CATU observado: **9/100**.
+10. El panel de alertas mostró **20 causas · 9 controles**, agrupando correctamente las causas por control.
+11. R019 y R024 mostraron tres causas cada uno: criticidad, vencimiento y evidencia por completar.
+12. La expansión `Ver causas (3)` funcionó correctamente.
+13. Abrir R049 desde la tarjeta agrupada funcionó y conservó sin alteración:
+    - `No subsanable / posible responsabilidad`;
+    - `Ruta C — No subsanable / canalización`;
+    - fecha compromiso 18-09-2026;
+    - riesgo residual `4 — Muy alto`.
+
+### Resultado
+
+**`0.1.3-dev.2`: APROBADO.**
+
+No se observó pérdida de información de las causas de alerta ni regresión funcional en R049. La mejora P4-MEJ-002 queda incorporada y validada para continuar la campaña.
 
 ---
 
-## 6. Siguiente paso
+## 6. Criterios de salida dev.2
 
-Después de aprobar dev.2:
+| Criterio | Resultado |
+|---|---|
+| Sello runtime `0.1.3-dev.2` visible | APROBADO |
+| Alertas `N causas · M controles` | APROBADO |
+| Una tarjeta por control | APROBADO |
+| Expansión de causas | APROBADO |
+| Apertura desde tarjeta agrupada | APROBADO |
+| Restauración R001/R015/R006 | APROBADO |
+| Corte acumulado 11/84 | APROBADO |
+| Persistencia de estado R049 | APROBADO |
 
-- iniciar P4.3 con R052, R080, R034, R069 y R067;
-- conservar los 11 controles acumulados como punto de partida;
-- no modificar todavía los pesos 65/35 ni los pesos de criticidad;
-- documentar el nuevo corte IPER después de P4.3.
+---
+
+## 7. Siguiente paso
+
+Se autoriza iniciar **P4.3 — Catastro, asuntos en trámite, fiscalización y continuidad digital**, con los controles:
+
+- R052 — Padrón de contribuyentes del impuesto predial.
+- R080 — Expedientes de recaudación asignable de predial y derechos de agua.
+- R034 — Asuntos pendientes de resolver.
+- R069 — Auditorías, observaciones y solventaciones pendientes.
+- R067 — Credenciales institucionales, respaldos y continuidad de sistemas.
+
+Se mantienen sin modificación los pesos IPER 65/35 y la ponderación por criticidad hasta contar con el corte acumulado de P4.3 y P4.4.
 
 ---
 
