@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.1.4-dev.4] - 2026-09-13
+
+### Corregido
+- P5-UI-0304: el mensaje de validación bloqueante podía quedar oculto detrás del modal nativo `<dialog>` en Safari.
+- Las inconsistencias de negocio que impiden guardar ahora se muestran **dentro del propio modal**, inmediatamente sobre los botones de acción.
+- La combinación `Conforme` + evidencia no evaluada/inexistente/insuficiente/parcial continúa bloqueada y ahora expone el motivo del rechazo de forma visible.
+- Los registros heredados de versiones previas con combinaciones inconsistentes no se alteran automáticamente; al abrirse muestran la advertencia para corrección controlada.
+
+### Infraestructura PWA
+- Service worker actualizado a `catu-er-v0.1.4-dev.4`.
+- Se incorpora `js/patch-p5-dev4.js` al app shell.
+
+### Estado
+- Corrección implementada en `dev/v0.1.4`.
+- Pendiente re-prueba funcional de P5-UI-0304 en Safari antes de continuar la campaña negativa.
+
 ## [0.1.4-dev.2] - 2026-09-13
 
 ### Corregido
