@@ -65,7 +65,7 @@ El piloto conserva perfiles locales para probar permisos de interfaz. Esto **no 
 **Incremento afectado:** `0.1.4-dev.2`  
 **Corrección aplicada:** `0.1.4-dev.3`  
 **Severidad:** B1 — Crítica / bloqueante para promoción  
-**Estado:** Corregida en código; pendiente de re-prueba funcional
+**Estado:** **CERRADA — re-prueba funcional y persistencia PASS**
 
 ### Caso de prueba asociado
 
@@ -73,9 +73,9 @@ El piloto conserva perfiles locales para probar permisos de interfaz. Esto **no 
 
 ### Evidencia de reproducción
 
-Con el perfil **Administrador municipal**, el control **R074 — Obligaciones de transparencia, datos personales y archivos** permitió guardar y persistir la combinación `Conforme + Insuficiente + Pendiente`.
+Con el perfil **Administrador municipal**, el control **R074 — Obligaciones de transparencia, datos personales y archivos** permitió originalmente guardar y persistir la combinación `Conforme + Insuficiente + Pendiente`.
 
-La combinación se mantuvo después de cerrar y volver a abrir el modal, por lo que la inconsistencia no era únicamente visual sino persistida en el estado local.
+La combinación se mantuvo después de cerrar y volver a abrir el modal en `0.1.4-dev.2`, por lo que la inconsistencia no era únicamente visual sino persistida en el estado local.
 
 ### Causa técnica
 
@@ -93,17 +93,19 @@ Se incorpora `js/patch-p5-dev3.js` con las siguientes medidas:
 6. El OIC mantiene capacidad de validar o rechazar registros heredados de versiones previas.
 7. Runtime y caché PWA se elevan a `0.1.4-dev.3` y `catu-er-v0.1.4-dev.3`.
 
-### Re-prueba obligatoria
+### Re-prueba ejecutada
 
-| Caso | Combinación / acción | Resultado esperado |
-|---|---|---|
-| P5-0301-A | Conforme + Insuficiente + Pendiente | Bloqueo; no persistir |
-| P5-0301-B | Conforme + Parcial + Pendiente | Bloqueo; no persistir |
-| P5-0301-C | Conforme + No evaluada + Pendiente | Bloqueo; no persistir |
-| P5-0301-D | Conforme + Completa verificada + Pendiente | Permitido; no cerrado |
-| P5-0301-E | Conforme + Completa verificada + Validado | Permitido; cerrado |
-| P5-0301-F | Cerrar/reabrir y recargar Safari | Persiste sólo el último estado válido |
+| Caso | Combinación / acción | Resultado esperado | Resultado final |
+|---|---|---|---|
+| P5-0301-A | Conforme + Insuficiente + Pendiente | Bloqueo; no persistir | **PASS** |
+| P5-0301-B | Conforme + Parcial + Pendiente | Bloqueo; no persistir | **PASS** |
+| P5-0301-C | Conforme + No evaluada + Pendiente | Bloqueo; no persistir | **PASS** |
+| P5-0301-D | Conforme + Completa verificada + Pendiente | Permitido; no cerrado | **PASS** |
+| P5-0301-E | Conforme + Completa verificada + Validado | Permitido; cerrado | **PASS** |
+| P5-0301-F | Cerrar/reabrir y recargar Safari | Persiste sólo el último estado válido | **PASS** |
+
+La comprobación final se realizó después de recargar Safari. El dashboard posterior reflejó `5/84` controles evaluados, `4%` de evidencia y `2` controles cerrados, consistente con la regla de cierre vigente y sin reaparición de combinaciones inválidas.
 
 ### Criterio de cierre
 
-`P5-INC-002` podrá cambiar a **CERRADA** cuando P5-0301-A a P5-0301-F resulten `PASS` y no se detecten regresiones sobre la segregación de funciones validada en P5-0203.
+Se cumple el criterio de cierre de `P5-INC-002`. La campaña P5.3 queda habilitada para continuar con `P5-0302 — No subsanable con Ruta A`.
