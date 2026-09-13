@@ -1,73 +1,74 @@
-# CATU E-R — Ejecución P5-0304 sobre 0.1.4-dev.4
+# CATU E-R — Ejecución P5-0304 sobre 0.1.4-dev.4 / re-prueba dev.5
 
 ## Identificación
 
 - Rama: `dev/v0.1.4`
-- Runtime objetivo: `0.1.4-dev.4`
+- Runtime inicial probado: `0.1.4-dev.4`
+- Runtime de re-prueba: `0.1.4-dev.5`
 - Subcampaña: `P5.3 — Integridad de estados y reglas de negocio`
 - Caso: `P5-0304 — Control accionable sin fecha compromiso`
-- Severidad si falla: **B1 — Crítica / bloqueante para promoción**
-- Perfil recomendado: **Administrador municipal**
-- Control recomendado: un control actualmente `No evaluado` distinto de R049/R074, para no contaminar evidencia previa.
+- Severidad si falla la regla de negocio: **B1 — Crítica / bloqueante para promoción**
+- Perfil: **Administrador municipal**
+- Control utilizado: `R076 — Expedientes catastrales de los contribuyentes`
 
 ## Objetivo
 
 Comprobar que un control que requiera acción correctiva no pueda guardarse sin `Fecha compromiso`. La fecha es necesaria para seguimiento, alertamiento de vencimientos y trazabilidad del plan de acción.
 
-## Precondiciones
+## Ejecución observada en 0.1.4-dev.4
 
-1. Confirmar `0.1.4-dev.4` en **Más → PWA y seguridad**.
-2. Conservar respaldo JSON previo a la prueba.
-3. Seleccionar un control de prueba no usado en incidencias anteriores.
-4. Usar perfil **Administrador municipal**.
+Se configuró R076 como control accionable con Ruta A y responsable capturado, dejando vacía la `Fecha compromiso`.
 
-## Procedimiento P5-0304
+Resultado funcional observado:
 
-1. Abrir el control seleccionado.
-2. Establecer `Estatus diagnóstico = Subsanable`.
-3. Establecer un `Estatus evidencia` compatible, por ejemplo `Parcial` o `Insuficiente`.
-4. Seleccionar un escenario que requiera tratamiento, por ejemplo `Documento incompleto`.
-5. Seleccionar `Ruta de tratamiento = A — Subsanación`.
-6. Dejar **vacía** la `Fecha compromiso`.
-7. Mantener un `Responsable de solventación` no vacío.
+- el guardado fue bloqueado correctamente;
+- el aviso contextual junto al campo de fecha indicó que los controles accionables requieren fecha compromiso antes de guardar;
+- por lo tanto, la regla de negocio principal de P5-0304 funcionó.
+
+Resultado de interfaz observado:
+
+- la validación heredada todavía generó una notificación tipo `toast` detrás del modal nativo en Safari;
+- el defecto no permitió el guardado indebido, pero reprodujo el patrón de visibilidad que dev.4 había corregido sólo para la inconsistencia diagnóstico/evidencia.
+
+## Clasificación
+
+- Regla P5-0304 — bloqueo funcional: **PASS provisional**.
+- Usabilidad/visibilidad del mensaje: **FAIL B3**, registrada como `P5-UI-0305`.
+- No se clasifica como B1 porque no se observó persistencia del estado inválido ni bypass de la regla.
+
+## Corrección aplicada — 0.1.4-dev.5
+
+`js/patch-p5-dev5.js` intercepta antes de los wrappers heredados:
+
+- control accionable sin ruta;
+- control accionable sin fecha compromiso;
+- control no subsanable con ruta distinta de C;
+- inconsistencia diagnóstico/evidencia.
+
+Las condiciones bloqueantes se muestran mediante `dialogValidation` dentro del modal y se impide que el flujo alcance el `toast` heredado de P4.
+
+## Re-prueba obligatoria sobre 0.1.4-dev.5
+
+1. Recargar Safari y confirmar `0.1.4-dev.5` en **Más → PWA y seguridad**.
+2. Abrir R076.
+3. Mantener `Estatus diagnóstico = Subsanable`.
+4. Mantener evidencia `Parcial` o `Insuficiente`.
+5. Mantener `Ruta A — Subsanación`.
+6. Mantener responsable no vacío.
+7. Vaciar completamente `Fecha compromiso`.
 8. Pulsar **Guardar cambios**.
-9. Registrar mensaje mostrado y comportamiento del modal.
-10. Cerrar/reabrir el control y recargar Safari para verificar que no se haya persistido silenciosamente la combinación inválida.
+9. Confirmar que el guardado se bloquea.
+10. Confirmar que el mensaje `P5-0304` aparece dentro del modal y que no existe notificación de validación oculta detrás del diálogo.
+11. Cerrar/reabrir R076.
+12. Recargar Safari y verificar que el estado inválido no fue persistido.
 
-## Resultado esperado
+## Criterio de cierre
 
-**PASS** si se cumplen todas las condiciones:
+**PASS definitivo** si:
 
-- el sistema bloquea el guardado cuando el control es accionable y `Fecha compromiso` está vacía;
-- muestra una advertencia clara dentro del modal indicando que debe capturarse una fecha compromiso;
-- la combinación inválida no se persiste;
-- tras cerrar/reabrir y recargar Safari, el control conserva el último estado válido previo a la prueba.
+- el sistema bloquea el guardado sin fecha compromiso;
+- el motivo se muestra dentro del modal;
+- no aparece toast oculto detrás del diálogo;
+- tras cerrar/reabrir y recargar Safari no persiste el estado inválido.
 
-**FAIL / incidencia B1** si ocurre cualquiera de las siguientes:
-
-- permite guardar un control `Subsanable` con Ruta A/B/C sin fecha compromiso;
-- el control aparece en el plan de acción sin fecha;
-- al recargar Safari persiste el registro accionable sin fecha;
-- la validación existe sólo visualmente pero el estado inválido queda almacenado.
-
-## Evidencia mínima
-
-- `EV-P5-0304-01_accionable_sin_fecha_intento_20260913.png`
-- `EV-P5-0304-02_mensaje_bloqueo_20260913.png`
-- `EV-P5-0304-03_estado_post_recarga_20260913.png`
-
-## Regla de contención
-
-Si P5-0304 falla:
-
-1. detener P5.3;
-2. no continuar con P5-0305;
-3. conservar capturas y respaldo JSON;
-4. registrar incidencia B1;
-5. corregir la regla de negocio antes de continuar;
-6. repetir P5-0304 completo después del parche.
-
-## Decisión posterior
-
-- **PASS:** continuar con `P5-0305 — Avance 100 con estado crítico no cerrado`.
-- **FAIL:** corrección obligatoria antes de continuar.
+Tras PASS definitivo se libera `P5-0305 — Avance 100 con estado crítico no cerrado`.
