@@ -55,3 +55,55 @@ La incidencia no se considera cerrada hasta ejecutar y documentar los siguientes
 ### Nota de alcance
 
 El piloto conserva perfiles locales para probar permisos de interfaz. Esto **no equivale a autenticación multiusuario real**; la autorización de producción deberá reproducirse también en backend/RLS antes de considerar el sistema apto para operación institucional multiusuario.
+
+---
+
+## P5-INC-002 — inconsistencia entre diagnóstico y evidencia
+
+**Fecha de detección:** 2026-09-13  
+**Rama:** `dev/v0.1.4`  
+**Incremento afectado:** `0.1.4-dev.2`  
+**Corrección aplicada:** `0.1.4-dev.3`  
+**Severidad:** B1 — Crítica / bloqueante para promoción  
+**Estado:** Corregida en código; pendiente de re-prueba funcional
+
+### Caso de prueba asociado
+
+`P5-0301 — Coherencia entre Estatus diagnóstico, Estatus evidencia y Validación OIC`.
+
+### Evidencia de reproducción
+
+Con el perfil **Administrador municipal**, el control **R074 — Obligaciones de transparencia, datos personales y archivos** permitió guardar y persistir la combinación `Conforme + Insuficiente + Pendiente`.
+
+La combinación se mantuvo después de cerrar y volver a abrir el modal, por lo que la inconsistencia no era únicamente visual sino persistida en el estado local.
+
+### Causa técnica
+
+`saveActiveControl()` persistía directamente los valores capturados y sólo usaba la combinación `Conforme + Completa verificada + Validado` para determinar `closedAt`. No existía una regla previa que rechazara combinaciones incompatibles antes de asignar y guardar `state.assessments[id]`.
+
+### Corrección aplicada — 0.1.4-dev.3
+
+Se incorpora `js/patch-p5-dev3.js` con las siguientes medidas:
+
+1. Regla central `p5ValidateAssessmentConsistency()`.
+2. `Conforme` queda bloqueado cuando la evidencia sea `No evaluada`, `Sin evidencia`, `Insuficiente` o `Parcial`.
+3. El guardado se interrumpe antes de la persistencia y se informa al usuario; no se modifica silenciosamente la selección.
+4. `Conforme + Completa verificada + Pendiente` sigue siendo válido como estado previo a revisión OIC.
+5. El cierre definitivo conserva la regla existente `Conforme + Completa verificada + Validado`.
+6. El OIC mantiene capacidad de validar o rechazar registros heredados de versiones previas.
+7. Runtime y caché PWA se elevan a `0.1.4-dev.3` y `catu-er-v0.1.4-dev.3`.
+
+### Re-prueba obligatoria
+
+| Caso | Combinación / acción | Resultado esperado |
+|---|---|---|
+| P5-0301-A | Conforme + Insuficiente + Pendiente | Bloqueo; no persistir |
+| P5-0301-B | Conforme + Parcial + Pendiente | Bloqueo; no persistir |
+| P5-0301-C | Conforme + No evaluada + Pendiente | Bloqueo; no persistir |
+| P5-0301-D | Conforme + Completa verificada + Pendiente | Permitido; no cerrado |
+| P5-0301-E | Conforme + Completa verificada + Validado | Permitido; cerrado |
+| P5-0301-F | Cerrar/reabrir y recargar Safari | Persiste sólo el último estado válido |
+
+### Criterio de cierre
+
+`P5-INC-002` podrá cambiar a **CERRADA** cuando P5-0301-A a P5-0301-F resulten `PASS` y no se detecten regresiones sobre la segregación de funciones validada en P5-0203.
