@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.1.4-dev.5] - 2026-09-13
+
+### Corregido
+- P5-UI-0305: las validaciones heredadas de ruta y fecha compromiso aún podían emitir un `toast` detrás del `<dialog>` nativo en Safari.
+- Las reglas bloqueantes de plan de acción ahora se interceptan antes de los validadores heredados y se muestran dentro del modal mediante la región de validación introducida en dev.4.
+- `P5-0304` — control accionable sin fecha compromiso — continúa bloqueando el guardado, pero el motivo del rechazo debe quedar visible dentro del modal.
+- Se unifica la presentación modal de: coherencia diagnóstico/evidencia, ruta obligatoria para controles accionables, fecha compromiso obligatoria y Ruta C para no subsanables.
+
+### Infraestructura PWA
+- Service worker actualizado a `catu-er-v0.1.4-dev.5`.
+- Se incorpora `js/patch-p5-dev5.js` al app shell.
+
+### Estado
+- Corrección implementada en `dev/v0.1.4`.
+- Pendiente re-prueba funcional de P5-0304 en Safari para confirmar ausencia de notificación oculta detrás del modal.
+
 ## [0.1.4-dev.4] - 2026-09-13
 
 ### Corregido
