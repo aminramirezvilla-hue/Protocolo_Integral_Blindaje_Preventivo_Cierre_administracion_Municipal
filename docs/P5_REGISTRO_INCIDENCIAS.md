@@ -109,3 +109,41 @@ La comprobación final se realizó después de recargar Safari. El dashboard pos
 ### Criterio de cierre
 
 Se cumple el criterio de cierre de `P5-INC-002`. La campaña P5.3 queda habilitada para continuar con `P5-0302 — No subsanable con Ruta A`.
+
+---
+
+## P5-UI-0305 — validación de plan de acción con notificación detrás del modal
+
+**Fecha de detección:** 2026-09-13  
+**Rama:** `dev/v0.1.4`  
+**Incremento afectado:** `0.1.4-dev.4`  
+**Corrección aplicada:** `0.1.4-dev.5`  
+**Severidad:** B3 — Menor / usabilidad; la regla de negocio sí bloquea el guardado  
+**Estado:** Corregida en código; pendiente de re-prueba funcional
+
+### Caso de prueba asociado
+
+`P5-0304 — Control accionable sin fecha compromiso`.
+
+### Evidencia de reproducción
+
+En `R076 — Expedientes catastrales de los contribuyentes`, con un estado accionable y Ruta A, se dejó vacía la `Fecha compromiso`. La aplicación bloqueó correctamente el guardado y mostró el aviso contextual junto al campo de fecha; sin embargo, la validación heredada también emitió un `toast` cuya capa quedaba detrás del `<dialog>` nativo en Safari.
+
+### Causa técnica
+
+`patch-p4-dev1.js` conserva validaciones históricas de ruta/fecha que llaman `toast()` antes de retornar. `0.1.4-dev.4` había trasladado al interior del modal únicamente la validación P5 de coherencia diagnóstico/evidencia, por lo que las rutas heredadas seguían pudiendo producir notificaciones detrás de la capa superior del diálogo.
+
+### Corrección aplicada — 0.1.4-dev.5
+
+Se incorpora `js/patch-p5-dev5.js`:
+
+1. intercepta antes de los wrappers heredados las validaciones bloqueantes de ruta, fecha y no-subsanable;
+2. reutiliza la región `dialogValidation` de dev.4;
+3. evita que una condición inválida alcance el wrapper P4 que emite `toast`;
+4. conserva el aviso contextual junto al campo de fecha;
+5. desplaza el foco al campo responsable de la inconsistencia;
+6. actualiza runtime y caché PWA a `0.1.4-dev.5` / `catu-er-v0.1.4-dev.5`.
+
+### Criterio de cierre
+
+Repetir P5-0304 en Safari. Debe bloquearse el guardado, mostrarse el motivo dentro del modal y no aparecer ninguna notificación de validación detrás del diálogo. Después de cerrar/reabrir y recargar Safari, el estado inválido no debe haberse persistido.
