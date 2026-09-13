@@ -12,9 +12,16 @@
 - Service worker actualizado a `catu-er-v0.1.4-dev.4`.
 - Se incorpora `js/patch-p5-dev4.js` al app shell.
 
+### Validación funcional
+- Re-prueba P5-UI-0304 ejecutada en Safari/macOS: **PASS**.
+- El mensaje `P5-0301` se muestra completamente visible dentro del modal para la combinación `Conforme + Insuficiente`.
+- Runtime `0.1.4-dev.4` confirmado en **Más → PWA y seguridad**.
+- Evidencia documentada en `docs/P5_REPRUEBA_UI-0304_DEV4.md`.
+
 ### Estado
-- Corrección implementada en `dev/v0.1.4`.
-- Pendiente re-prueba funcional de P5-UI-0304 en Safari antes de continuar la campaña negativa.
+- P5-UI-0304: **CERRADA**.
+- Se libera la continuación de `P5.3` con `P5-0304 — Control accionable sin fecha compromiso`.
+- Procedimiento preparado en `docs/P5_EJECUCION_P5-0304_DEV4.md`.
 
 ## [0.1.4-dev.2] - 2026-09-13
 
