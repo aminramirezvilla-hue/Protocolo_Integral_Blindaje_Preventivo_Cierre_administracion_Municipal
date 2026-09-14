@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.1.4-dev.7] - 2026-09-13
+
+### P5.2 — Clasificación de materialidad
+- Se refina la regla de invalidación automática de decisiones OIC introducida en dev.6.
+- Se consideran **cambios materiales**: estatus diagnóstico, estatus evidencia, escenario, ruta, responsable, riesgo residual, enlace principal de evidencia y observaciones sustantivas.
+- Se consideran **cambios operativos no materiales**: fecha compromiso y avance de acción; éstos se registran en bitácora pero no reinician por sí mismos una decisión OIC previa.
+- Se incorpora el campo **Nueva nota de seguimiento / bitácora**, separado de las observaciones sustantivas. Una nota de seguimiento no invalida por sí misma `Validado`, `Rechazado` o `No aplica`.
+- La incorporación de nueva evidencia continúa siendo material y mantiene la regla de dev.6: reinicia la Validación OIC a `Pendiente` y elimina el cierre operativo del control.
+- Los cambios materiales posteriores a una decisión OIC continúan registrando la invalidación en bitácora y eliminando `closedAt`.
+- Los cambios no materiales posteriores a una decisión OIC generan un evento de auditoría específico conservando la decisión vigente.
+
+### Infraestructura PWA
+- Service worker actualizado a `catu-er-v0.1.4-dev.7`.
+- Se incorpora `js/patch-p5-dev7.js` al app shell.
+
+### Validación pendiente
+- P5-0313A: agregar nota de seguimiento a control validado; debe conservar decisión OIC y cierre.
+- P5-0313B: modificar observación sustantiva; debe reiniciar decisión OIC a `Pendiente` y eliminar cierre.
+- P5-0313C: modificar sólo fecha compromiso o avance; debe conservar decisión OIC y registrar cambio no material.
+- P5-0313D: agregar evidencia a control validado; debe reiniciar decisión OIC a `Pendiente`.
+
 ## [0.1.4-dev.5] - 2026-09-13
 
 ### Corregido
