@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.1.4-dev.8] - 2026-09-14
+
+### P5-TZ-001 — Trazabilidad temporal y zona horaria
+- Se conserva UTC como sello temporal canónico para eventos auditables.
+- Se incorpora la zona horaria del espacio de trabajo, con valor inicial `America/Mexico_City` para el piloto Guerrero.
+- Se agrega fecha/hora civil local derivada del sello UTC para bitácora, evidencias y metadatos temporales.
+- Se corrige el desfase de día causado por recortar `YYYY-MM-DD` desde una marca UTC antes de formatearla para pantalla.
+- Las notas de seguimiento ahora muestran fecha y hora local del espacio de trabajo.
+- La vista de evidencia ahora muestra fecha y hora local del espacio de trabajo.
+- Los registros existentes se enriquecen de forma no destructiva con `timestampUTC`, `timeZone` y `localDateTime` cuando es posible.
+- Los controles conservan metadatos locales complementarios para `evaluatedAt`, `updatedAt` y, cuando exista, `oicInvalidatedAt`.
+
+### Infraestructura PWA
+- Se incorpora `js/patch-p5-dev8.js` al app shell.
+- Service worker actualizado a `catu-er-v0.1.4-dev.8` para forzar renovación controlada de caché.
+
+### Validación requerida
+- `P5-TZ-001-A`: registrar una nota de seguimiento después de las 18:00 hora local y comprobar que la fecha visible corresponde al día local, aunque UTC ya sea el día siguiente.
+- `P5-TZ-001-B`: registrar evidencia en el mismo intervalo y comprobar fecha/hora local correcta en la vista Evidencia.
+- `P5-TZ-001-C`: cerrar y reabrir Safari; la fecha/hora debe persistir sin cambiar.
+- `P5-TZ-001-D`: confirmar en Más → PWA y seguridad la versión `0.1.4-dev.8`.
+
 ## [0.1.4-dev.7] - 2026-09-13
 
 ### P5.2 — Clasificación de materialidad
