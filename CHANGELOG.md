@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.1.4-dev.9] - 2026-09-16
+
+### P5-XD-FIX-001 — Merge granular y no destructivo de respaldos JSON
+- Se corrige el hallazgo `P5-XD-004`: la importación JSON ya no sustituye silenciosamente el estado completo del dispositivo receptor.
+- Las notas de seguimiento (`followUpLog`) se fusionan como colección append-only, conservando entradas concurrentes de Mac y iPhone.
+- Las evidencias se fusionan por identificador y la reimportación del mismo respaldo es idempotente: no debe duplicar evidencias ni notas ya existentes.
+- El `auditLog` se fusiona de forma no destructiva.
+- Para campos escalares sustantivos de un control, una divergencia concurrente ya no se resuelve por sobrescritura silenciosa: se conserva el valor local y se registra un conflicto de importación.
+- La decisión `Validación OIC` queda incluida entre los campos protegidos frente a sobrescritura silenciosa.
+- Los campos vacíos o en valor por defecto del receptor pueden completarse con valores no predeterminados del respaldo importado.
+- Se incorpora `state.importConflicts` para conservar la trazabilidad de divergencias detectadas durante importaciones cruzadas.
+- El cuadro de confirmación de importación informa ahora que la operación es una fusión y no una sustitución.
+
+### Infraestructura PWA
+- Se incorpora `js/patch-p5-dev9.js` al app shell.
+- Service worker actualizado a `catu-er-v0.1.4-dev.9` para forzar renovación controlada de caché.
+
+### Campaña de regresión requerida
+- `P5-XD-005-A`: Mac→iPhone, mismo control con notas concurrentes; ambas notas deben coexistir.
+- `P5-XD-005-B`: iPhone→Mac, mismo control con notas concurrentes; ambas notas deben coexistir.
+- `P5-XD-005-C`: reimportar exactamente el mismo JSON; no deben duplicarse notas ni evidencias.
+- `P5-XD-005-D`: provocar divergencia en un campo escalar sustantivo; el valor local debe preservarse y el conflicto debe quedar registrado.
+- `P5-XD-005-E`: confirmar que la versión visible en Más → PWA y seguridad sea `0.1.4-dev.9`.
+
 ## [0.1.4-dev.8] - 2026-09-14
 
 ### P5-TZ-001 — Trazabilidad temporal y zona horaria
