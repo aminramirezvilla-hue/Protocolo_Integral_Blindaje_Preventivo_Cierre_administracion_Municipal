@@ -1,6 +1,6 @@
 'use strict';
 
-// P5-INC-002 + gestión de perfiles piloto.
+// P5-INC-003 + gestión de perfiles piloto.
 // - Restaura autorización horizontal por macro módulo para Responsable de área.
 // - Mantiene Consultor CATU en modo no decisorio con nota/evidencia.
 // - Conserva Validación OIC exclusiva de Revisor/OIC.
@@ -246,6 +246,6 @@ renderMore = function(){
   if(badge) badge.textContent = P5_DEV11_VERSION;
   const continuity = document.getElementById('p4ContinuityPanel');
   if(continuity){
-    continuity.innerHTML = '<strong>P5-INC-002 · RBAC por ámbito + ciclo de vida de perfiles</strong><p style="margin:6px 0">Versión 0.1.4-dev.11. Responsable de área vuelve a quedar limitado a su macro módulo; “Todas” no concede privilegio transversal. Consultor CATU conserva consulta, nota y evidencia no decisoria. Validación OIC continúa exclusiva del Revisor/OIC. Administrador/Coordinador pueden eliminar perfiles piloto personalizados sin borrar trazabilidad histórica.</p>';
+    continuity.innerHTML = '<strong>P5-INC-003 · RBAC por ámbito + ciclo de vida de perfiles</strong><p style="margin:6px 0">Versión 0.1.4-dev.11. Responsable de área vuelve a quedar limitado a su macro módulo; “Todas” no concede privilegio transversal. Consultor CATU conserva consulta, nota y evidencia no decisoria. Validación OIC continúa exclusiva del Revisor/OIC. Administrador/Coordinador pueden eliminar perfiles piloto personalizados sin borrar trazabilidad histórica.</p>';
   }
 };
