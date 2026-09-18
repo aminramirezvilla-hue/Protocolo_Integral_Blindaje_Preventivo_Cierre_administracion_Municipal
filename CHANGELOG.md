@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.1.4-dev.12] - 2026-09-18
+
+### P5-XD-008 — Resolución gobernada de conflictos
+- Se incorpora una bandeja de conflictos de importación en Más → Conflictos de importación.
+- Cada divergencia conserva de forma permanente el valor local y el valor importado originales.
+- La resolución exige una decisión explícita y una justificación verificable.
+- La bitácora registra conflicto, campo, decisión, usuario/rol, fecha-hora, valores originales y valor resuelto.
+- Administrador municipal y Coordinador E-R pueden resolver conflictos sustantivos generales.
+- Las divergencias de Validación OIC sólo pueden resolverse con perfil Revisor/OIC.
+- Los campos derivados, como el cierre operativo, no pueden imponerse directamente desde un respaldo.
+- Aceptar un valor importado material aplica la invalidación OIC vigente cuando corresponda.
+- Un conflicto ya resuelto puede viajar en un respaldo a otro dispositivo sin degradarse nuevamente a pendiente.
+- Reimportar la misma divergencia ya resuelta no debe recrearla silenciosamente.
+
+### Infraestructura PWA
+- Se incorpora `js/patch-p5-dev12.js` al app shell.
+- Service worker actualizado a `catu-er-v0.1.4-dev.12`.
+
+### Campaña funcional
+- `P5-XD-008-A`: revisar conflicto pendiente y confirmar visualización de ambos valores.
+- `P5-XD-008-B`: resolver conservando valor local con justificación.
+- `P5-XD-008-C`: resolver otro conflicto aceptando valor importado.
+- `P5-XD-008-D`: comprobar RBAC: Consultor CATU/Responsable de área sólo lectura; Revisor/OIC exclusivo para conflictos OIC.
+- `P5-XD-008-E`: exportar JSON y verificar metadatos de resolución y valores originales.
+- `P5-XD-008-F`: roundtrip a segundo dispositivo y comprobar que el conflicto resuelto no vuelve a pendiente.
+
 ## [0.1.4-dev.9] - 2026-09-16
 
 ### P5-XD-FIX-001 — Merge granular y no destructivo de respaldos JSON
