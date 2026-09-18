@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.1.4-dev.13] - 2026-09-18
+
+### P5-PWA-009 — Hardening de caché Safari / GitHub Pages
+- Se corrige el riesgo de que Safari conserve un HTML antiguo del preview después de un despliegue exitoso.
+- Las navegaciones HTML pasan a estrategia **network-first** con `cache: no-store`.
+- Los activos estáticos continúan con estrategia cache-first para conservar la operación offline del piloto.
+- Service worker actualizado a `catu-er-v0.1.4-dev.13`.
+- Se incorpora `js/patch-p5-dev13.js` al app shell.
+- La medida es no destructiva respecto de IndexedDB: diagnóstico, evidencia, bitácoras y conflictos existentes permanecen intactos.
+
+### Re-prueba requerida
+- Abrir el preview con parámetro de bust de caché una sola vez.
+- Confirmar versión visible `0.1.4-dev.13`.
+- Recargar Safari y comprobar que la versión permanece.
+- Confirmar que el estado local del municipio y los conflictos P5-XD-008 siguen presentes.
+
 ## [0.1.4-dev.12] - 2026-09-18
 
 ### P5-XD-008 — Resolución gobernada de conflictos
