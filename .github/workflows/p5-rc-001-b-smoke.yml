@@ -1,0 +1,154 @@
+name: P5-RC-001-B Clean Smoke
+
+on:
+  push:
+    branches: ["validation/p5-rc-001-b-smoke"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  clean-smoke:
+    runs-on: ubuntu-latest
+    env:
+      EXPECTED_SOURCE_SHA: ee0b94a66c079122c1f07132466ea911b54ef1e3
+      EXPECTED_RUNTIME: 0.1.4-dev.13
+    steps:
+      - name: Checkout validation branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Verify frozen source parent
+        shell: bash
+        run: |
+          set -euo pipefail
+          PARENT="$(git rev-parse HEAD^)"
+          echo "Validation commit: $(git rev-parse HEAD)"
+          echo "Frozen source parent: $PARENT"
+          test "$PARENT" = "$EXPECTED_SOURCE_SHA"
+
+      - name: Reject unresolved merge markers
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -RInE '^(<<<<<<<|=======|>>>>>>>)'             --include='*.js' --include='*.html' --include='*.css'             --include='*.json' --include='*.webmanifest' . ; then
+            echo "Unresolved merge marker detected."
+            exit 1
+          fi
+
+      - name: JavaScript syntax check
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' f; do
+            echo "node --check $f"
+            node --check "$f"
+          done < <(find js -type f -name '*.js' -print0)
+          node --check sw.js
+          node --check config.example.js
+
+      - name: Validate JSON payloads and control count
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, glob, pathlib
+
+          def count_controls(obj):
+              if isinstance(obj, list):
+                  return len(obj)
+              if isinstance(obj, dict):
+                  for key in ("controls", "items", "data"):
+                      if isinstance(obj.get(key), list):
+                          return len(obj[key])
+              raise SystemExit("Unsupported controls JSON structure")
+
+          total = 0
+          for p in sorted(glob.glob("data/runtime/controls-*.json")):
+              with open(p, encoding="utf-8") as f:
+                  obj = json.load(f)
+              n = count_controls(obj)
+              print(f"{p}: {n} controls")
+              total += n
+
+          with open("manifest.webmanifest", encoding="utf-8") as f:
+              json.load(f)
+
+          print(f"TOTAL_CONTROLS={total}")
+          if total != 84:
+              raise SystemExit(f"Expected 84 controls, got {total}")
+          PY
+
+      - name: Validate HTML local asset references
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          from urllib.parse import urlsplit
+          from pathlib import Path
+
+          class P(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.refs=[]
+              def handle_starttag(self, tag, attrs):
+                  a=dict(attrs)
+                  if tag=="script" and a.get("src"): self.refs.append(a["src"])
+                  if tag=="link" and a.get("href"): self.refs.append(a["href"])
+                  if tag=="img" and a.get("src"): self.refs.append(a["src"])
+
+          p=P()
+          p.feed(Path("index.html").read_text(encoding="utf-8"))
+          missing=[]
+          for ref in p.refs:
+              if ref.startswith(("http://","https://","data:","#")):
+                  continue
+              path=urlsplit(ref).path
+              if path.startswith("./"):
+                  path=path[2:]
+              if path and not Path(path).exists():
+                  missing.append(ref)
+          print("Local refs:", len(p.refs))
+          if missing:
+              raise SystemExit("Missing local refs: " + ", ".join(missing))
+          PY
+
+      - name: Validate dev.13 runtime and Safari cache hardening
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq "./js/patch-p5-dev13.js" index.html
+          grep -Fq "catu-er-v0.1.4-dev.13" sw.js
+          grep -Fq "cache:'no-store'" sw.js
+          grep -Fq "network-first" CHANGELOG.md
+          grep -Fq "$EXPECTED_RUNTIME" CHANGELOG.md
+
+      - name: Validate service-worker app shell paths
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          s=Path("sw.js").read_text(encoding="utf-8")
+          refs=re.findall(r"'(\./[^']+)'", s)
+          missing=[]
+          for ref in refs:
+              clean=ref.split("?",1)[0][2:]
+              if clean and clean != "" and not Path(clean).exists():
+                  missing.append(ref)
+          print(f"APP_SHELL_REFS={len(refs)}")
+          if missing:
+              raise SystemExit("Missing service-worker refs: " + ", ".join(missing))
+          PY
+
+      - name: Smoke summary
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "P5-RC-001-B CLEAN SMOKE: PASS"
+          echo "Frozen source: $EXPECTED_SOURCE_SHA"
+          echo "Runtime: $EXPECTED_RUNTIME"
