@@ -14,26 +14,29 @@ jobs:
     env:
       EXPECTED_SOURCE_SHA: ee0b94a66c079122c1f07132466ea911b54ef1e3
       EXPECTED_RUNTIME: 0.1.4-dev.13
+      LIVE_BASE: https://aminramirezvilla-hue.github.io/Protocolo_Integral_Blindaje_Preventivo_Cierre_administracion_Municipal
     steps:
       - name: Checkout validation branch
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
 
-      - name: Verify frozen source parent
+      - name: Verify frozen source ancestry
         shell: bash
         run: |
           set -euo pipefail
-          PARENT="$(git rev-parse HEAD^)"
+          git cat-file -e "$EXPECTED_SOURCE_SHA^{commit}"
+          git merge-base --is-ancestor "$EXPECTED_SOURCE_SHA" HEAD
           echo "Validation commit: $(git rev-parse HEAD)"
-          echo "Frozen source parent: $PARENT"
-          test "$PARENT" = "$EXPECTED_SOURCE_SHA"
+          echo "Frozen source anchor: $EXPECTED_SOURCE_SHA"
 
       - name: Reject unresolved merge markers
         shell: bash
         run: |
           set -euo pipefail
-          if grep -RInE '^(<<<<<<<|=======|>>>>>>>)'             --include='*.js' --include='*.html' --include='*.css'             --include='*.json' --include='*.webmanifest' . ; then
+          if grep -RInE '^(<<<<<<<|=======|>>>>>>>)' \
+            --include='*.js' --include='*.html' --include='*.css' \
+            --include='*.json' --include='*.webmanifest' . ; then
             echo "Unresolved merge marker detected."
             exit 1
           fi
@@ -54,7 +57,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import json, glob, pathlib
+          import json, glob
 
           def count_controls(obj):
               if isinstance(obj, list):
@@ -138,11 +141,52 @@ jobs:
           missing=[]
           for ref in refs:
               clean=ref.split("?",1)[0][2:]
-              if clean and clean != "" and not Path(clean).exists():
+              if clean and not Path(clean).exists():
                   missing.append(ref)
           print(f"APP_SHELL_REFS={len(refs)}")
           if missing:
               raise SystemExit("Missing service-worker refs: " + ", ".join(missing))
+          PY
+
+      - name: Live GitHub Pages smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          PREVIEW="$LIVE_BASE/p5-preview"
+          curl -fsSL --retry 3 "$PREVIEW/" -o /tmp/index.html
+          curl -fsSL --retry 3 "$PREVIEW/sw.js" -o /tmp/sw.js
+          curl -fsSL --retry 3 "$PREVIEW/js/patch-p5-dev13.js" -o /tmp/patch-p5-dev13.js
+          curl -fsSL --retry 3 "$PREVIEW/manifest.webmanifest" -o /tmp/manifest.webmanifest
+          curl -fsSL --retry 3 "$PREVIEW/PREVIEW_BUILD.txt" -o /tmp/PREVIEW_BUILD.txt
+          for i in 1 2 3; do
+            curl -fsSL --retry 3 "$PREVIEW/data/runtime/controls-$i.json" -o "/tmp/controls-$i.json"
+          done
+
+          grep -Fq "./js/patch-p5-dev13.js" /tmp/index.html
+          grep -Fq "catu-er-v0.1.4-dev.13" /tmp/sw.js
+          grep -Fq "cache:'no-store'" /tmp/sw.js
+          grep -Fq "P5 preview built from dev/v0.1.4" /tmp/PREVIEW_BUILD.txt
+
+          python3 - <<'PY'
+          import json
+          total=0
+          for i in (1,2,3):
+              with open(f"/tmp/controls-{i}.json",encoding="utf-8") as f:
+                  obj=json.load(f)
+              if isinstance(obj,list):
+                  total+=len(obj)
+              elif isinstance(obj,dict):
+                  found=False
+                  for k in ("controls","items","data"):
+                      if isinstance(obj.get(k),list):
+                          total+=len(obj[k]); found=True; break
+                  if not found:
+                      raise SystemExit("Unsupported live controls JSON structure")
+          with open("/tmp/manifest.webmanifest",encoding="utf-8") as f:
+              json.load(f)
+          print(f"LIVE_TOTAL_CONTROLS={total}")
+          if total != 84:
+              raise SystemExit(f"Expected 84 live controls, got {total}")
           PY
 
       - name: Smoke summary
@@ -152,3 +196,4 @@ jobs:
           echo "P5-RC-001-B CLEAN SMOKE: PASS"
           echo "Frozen source: $EXPECTED_SOURCE_SHA"
           echo "Runtime: $EXPECTED_RUNTIME"
+          echo "Live preview: $LIVE_BASE/p5-preview/"
