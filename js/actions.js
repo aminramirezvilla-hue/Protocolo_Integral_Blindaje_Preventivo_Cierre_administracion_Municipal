@@ -14,7 +14,7 @@ function openControl(id){
     <div class="field-grid"><label class="field">Estatus diagnóstico<select id="dlgStatus" ${generalDisabled}>${selectOptions(STATUS_OPTIONS,a.status)}</select></label><label class="field">Estatus evidencia<select id="dlgEvidenceStatus" ${generalDisabled}>${selectOptions(EVIDENCE_OPTIONS,a.evidenceStatus)}</select></label></div>
     <label class="field">Escenario detectado<select id="dlgScenario" ${generalDisabled}>${selectOptions(SCENARIOS,a.scenario)}</select></label>
     <label class="field">Ruta de tratamiento<select id="dlgRoute" ${generalDisabled}>${selectOptions(ROUTES,a.route)}</select></label>
-    <div class="field-grid"><label class="field">Responsable de solventación<input id="dlgResponsible" ${generalDisabled} value="${esc(a.responsible||c.responsibleBase)}"></label><label class="field">Fecha compromiso<input id="dlgDue" ${generalDisabled} type="date" value="${esc(a.dueDate||'')}"></label></div>
+    <div class="field-grid"><label class="field">Responsable de solventación<input id="dlgResponsible" ${generalDisabled} value="${esc((Object.prototype.hasOwnProperty.call(a,'responsible') ? a.responsible : c.responsibleBase))}"></label><label class="field">Fecha compromiso<input id="dlgDue" ${generalDisabled} type="date" value="${esc(a.dueDate||'')}"></label></div>
     <div class="field-grid"><label class="field">Avance de acción (0–100)<input id="dlgProgress" ${generalDisabled} type="number" min="0" max="100" value="${Number(a.progress)||0}"></label><label class="field">Riesgo residual<select id="dlgResidualRisk" ${generalDisabled}>${[1,2,3,4].map(r=>`<option value="${r}" ${Number(a.residualRisk)===r?'selected':''}>${r} — ${riskLabel(r)}</option>`).join('')}</select></label></div>
     <label class="field">Enlace principal al expediente<input id="dlgEvidenceLink" ${generalDisabled} type="url" value="${esc(a.evidenceLink||'')}" placeholder="Drive / OneDrive"></label>
     <label class="field">Observaciones<textarea id="dlgNotes" ${generalDisabled}>${esc(a.notes||'')}</textarea></label>
@@ -113,7 +113,7 @@ function exportRows(){
     const a=assessmentFor(c.id); const sc=scoreControl(c,a);
     return {
       ID:c.id,'Macro módulo':c.macroModule,Módulo:c.module,Fundamento:c.foundationValidated,Requisito:c.requirement,
-      Responsable:a.responsible||c.responsibleBase,Hito:c.milestone,'Riesgo base':c.baseRisk,'Riesgo residual':a.residualRisk,
+      Responsable:(Object.prototype.hasOwnProperty.call(a,'responsible') ? a.responsible : c.responsibleBase),Hito:c.milestone,'Riesgo base':c.baseRisk,'Riesgo residual':a.residualRisk,
       'Estatus diagnóstico':a.status,'Estatus evidencia':a.evidenceStatus,Escenario:a.scenario,Ruta:a.route,
       'Fecha compromiso':a.dueDate,'Avance %':a.progress,'Validación OIC':a.oicValidation,'Enlace expediente':a.evidenceLink,
       Observaciones:a.notes,'Puntaje control':sc.score==null?'':Math.round(sc.score*10)/10
