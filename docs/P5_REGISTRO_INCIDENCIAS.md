@@ -6,7 +6,7 @@
 **Rama:** `dev/v0.1.4`  
 **Incremento afectado:** `0.1.4-dev.1`  
 **Severidad:** B1 — Crítica / bloqueante para promoción  
-**Estado:** Corregida en código; pendiente de re-prueba funcional
+**Estado:** **CERRADA — re-prueba funcional y persistencia PASS**
 
 ### Caso de prueba asociado
 
@@ -51,6 +51,36 @@ La incidencia no se considera cerrada hasta ejecutar y documentar los siguientes
 ### Criterio de cierre
 
 `P5-INC-001` podrá cambiar a **CERRADA** cuando todos los casos P5-0203-A a P5-0203-F resulten `PASS`, los cambios persistan correctamente después de cerrar/reabrir modal y recargar Safari, y no se detecten regresiones en perfiles Administrador municipal, Coordinador E-R, Revisor/OIC y Consultor CATU.
+
+
+### Cierre formal — 2026-10-01
+
+**Resultado:** CERRADA.
+
+Se acredita el criterio de cierre mediante la campaña funcional `P5-0203`:
+
+| Caso | Resultado |
+|---|---|
+| P5-0203-A | PASS |
+| P5-0203-B | PASS |
+| P5-0203-C | PASS |
+| P5-0203-D | PASS |
+| P5-0203-E | PASS |
+| P5-0203-F | PASS |
+
+**Evidencia funcional:** `EV-P9-006A` a `EV-P9-006F`.
+
+Se verificó además:
+
+- persistencia correcta después de cerrar/reabrir modal y recargar Safari;
+- segregación por ámbito para el perfil Responsable de área;
+- bloqueo de edición y evidencia fuera del ámbito autorizado;
+- edición permitida dentro del ámbito propio;
+- `Validación OIC` no editable por Responsable de área;
+- `Validación OIC` editable exclusivamente por Revisor/OIC, manteniendo bloqueados los campos generales;
+- ausencia de regresión observada en los perfiles considerados por el criterio de cierre;
+- adjudicación documental previa al cierre mediante `EV-P9-007`;
+- baseline de cierre: `dev/v0.1.8`, commit `a413852`.
 
 ### Nota de alcance
 
