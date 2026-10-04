@@ -134,3 +134,235 @@ a{color:var(--info)}
 @media print{
   body{padding:0;background:#fff}.no-print{display:none!important}.app-main{max-width:none;padding:0}.card,.kpi-card{box-shadow:none;break-inside:avoid}.report-only{display:block!important}.page-head .page-actions{display:none}.report-table{font-size:9px}@page{size:A4;margin:12mm}
 }
+
+/* =========================================================
+   P9 — iPhone / Safari modal viewport hotfix
+   Objetivo:
+   - mantener cabecera y acciones visibles;
+   - desplazar únicamente el cuerpo del modal;
+   - respetar dynamic viewport y safe-area de iOS.
+   ========================================================= */
+
+@media (max-width: 760px) {
+
+  .control-dialog {
+    box-sizing: border-box;
+    width: calc(100vw - 16px);
+    max-width: 720px;
+
+    /* fallback para navegadores sin dvh */
+    max-height: calc(100vh - 16px);
+
+    overflow: hidden;
+  }
+
+  .dialog-shell {
+    display: flex;
+    flex-direction: column;
+
+    /* fallback */
+    max-height: calc(100vh - 16px);
+
+    overflow: hidden;
+  }
+
+  .dialog-head {
+    flex: 0 0 auto;
+  }
+
+  .dialog-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  .dialog-actions {
+    flex: 0 0 auto;
+    position: relative;
+    z-index: 3;
+
+    padding-bottom:
+      max(14px, env(safe-area-inset-bottom));
+
+    background: #fafbfd;
+  }
+}
+
+
+/* Safari/iOS moderno: usar el viewport dinámico real */
+@supports (height: 100dvh) {
+
+  @media (max-width: 760px) {
+
+    .control-dialog {
+      max-height:
+        calc(
+          100dvh
+          - max(8px, env(safe-area-inset-top))
+          - max(8px, env(safe-area-inset-bottom))
+        );
+    }
+
+    .dialog-shell {
+      max-height:
+        calc(
+          100dvh
+          - max(8px, env(safe-area-inset-top))
+          - max(8px, env(safe-area-inset-bottom))
+        );
+    }
+
+  }
+
+}
+
+/* =========================================================
+   P9 - iPhone / Safari modal viewport HOTFIX C
+   EV-P9-020C
+   Estrategia:
+   - no depender de vh/dvh para dimensionar el dialog;
+   - fijar físicamente el dialog al viewport;
+   - mantener header/footer fuera del scroll;
+   - desplazar únicamente dialog-body.
+   ========================================================= */
+
+@media (max-width: 760px) {
+
+  .control-dialog[open] {
+    box-sizing: border-box;
+
+    position: fixed;
+
+    top: max(8px, env(safe-area-inset-top));
+    right: 8px;
+    bottom: max(8px, env(safe-area-inset-bottom));
+    left: 8px;
+
+    width: auto;
+    height: auto;
+
+    max-width: 720px;
+    max-height: none;
+
+    margin: 0 auto;
+
+    overflow: hidden;
+  }
+
+  .control-dialog[open] .dialog-shell {
+    box-sizing: border-box;
+
+    display: flex;
+    flex-direction: column;
+
+    width: 100%;
+    height: 100%;
+
+    max-height: none;
+    min-height: 0;
+
+    overflow: hidden;
+  }
+
+  .control-dialog[open] .dialog-head {
+    flex: 0 0 auto;
+  }
+
+  .control-dialog[open] .dialog-body {
+    flex: 1 1 auto;
+
+    min-height: 0;
+
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  .control-dialog[open] .dialog-actions {
+    flex: 0 0 auto;
+
+    position: relative;
+    z-index: 5;
+
+    margin: 0;
+
+    padding-bottom:
+      max(14px, env(safe-area-inset-bottom));
+
+    background: #fafbfd;
+  }
+}
+
+
+/* ==========================================================
+   P9-020D — iPhone / Safari modal dynamic viewport hotfix
+   Validado mediante EV-P9-020D-02 y EV-P9-020D-03
+   Objetivo:
+   - limitar físicamente el dialog al visual viewport;
+   - mantener header y acciones visibles;
+   - desplazar exclusivamente el cuerpo;
+   - respetar safe-area de iOS.
+   ========================================================== */
+
+@media (max-width: 760px) {
+
+  .control-dialog[open] {
+    box-sizing: border-box !important;
+
+    width: calc(100vw - 16px) !important;
+    max-width: 720px !important;
+
+    /* fallback */
+    height: calc(100vh - 16px) !important;
+    max-height: calc(100vh - 16px) !important;
+
+    /* viewport dinámico moderno */
+    height: calc(100dvh - 16px) !important;
+    max-height: calc(100dvh - 16px) !important;
+
+    margin: auto !important;
+    overflow: hidden !important;
+  }
+
+  .control-dialog[open] > .dialog-shell {
+    display: flex !important;
+    flex-direction: column !important;
+
+    height: 100% !important;
+    max-height: 100% !important;
+    min-height: 0 !important;
+
+    overflow: hidden !important;
+  }
+
+  .control-dialog[open] .dialog-head {
+    flex: 0 0 auto !important;
+  }
+
+  .control-dialog[open] .dialog-body {
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  .control-dialog[open] .dialog-actions {
+    flex: 0 0 auto !important;
+    position: relative !important;
+    z-index: 3 !important;
+
+    padding-bottom:
+      max(14px, env(safe-area-inset-bottom)) !important;
+
+    background: #fafbfd !important;
+  }
+}
