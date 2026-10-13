@@ -1,109 +1,95 @@
 'use strict';
 
-// P5-INC-003 — cierre de exposición UI de administración de perfiles piloto.
-// Incremento aditivo posterior a dev.14.
-// Objetivos:
-// 1) mantener la autorización funcional de dev.11 intacta;
-// 2) no renderizar controles de alta de perfiles para roles no administradores;
-// 3) conservar la lista/selector de perfiles locales para pruebas del piloto;
-// 4) preservar Admin/Coordinador como únicos gestores del ciclo de vida de perfiles.
+/* CATU E-R — P5-BL-003 / CIE-02 hotfix
+ * Proposed runtime: 0.1.4-dev.15
+ * Loaded AFTER patch-p5-dev14.js.
+ * Decouples modal close actions from native form submission/validation.
+ */
+
 const P5_DEV15_VERSION = '0.1.4-dev.15';
+const P5_DEV15_HOTFIX = 'CIE-02-CLOSE-NO-SUBMIT-v1.0';
 
-function p5Dev15Role(){
-  return currentUser()?.role || '';
-}
-
-function p5Dev15CanManageProfiles(){
-  if(typeof p5Dev11CanManageProfiles === 'function') {
-    return p5Dev11CanManageProfiles();
-  }
-  return ['admin','coordinator'].includes(p5Dev15Role());
-}
-
-function p5Dev15ProfileUiSnapshot(){
-  const heading = [...document.querySelectorAll('h3')]
-    .find(el => (el.textContent || '').trim() === 'Agregar perfil piloto') || null;
-
-  return {
-    version: P5_DEV15_VERSION,
-    role: p5Dev15Role(),
-    canManage: p5Dev15CanManageProfiles(),
-    addProfileHeadingVisible: Boolean(heading && heading.offsetParent !== null),
-    newUserNamePresent: Boolean(document.getElementById('newUserName')),
-    newUserRolePresent: Boolean(document.getElementById('newUserRole')),
-    newUserAreaPresent: Boolean(document.getElementById('newUserArea')),
-    addUserBtnPresent: Boolean(document.getElementById('addUserBtn')),
-    deleteButtonsVisible: [...document.querySelectorAll('[data-delete-user]')]
-      .filter(el => el.offsetParent !== null).length
-  };
-}
-
-function p5Dev15ApplyProfileUiGate(){
-  if(p5Dev15CanManageProfiles()) {
-    return p5Dev15ProfileUiSnapshot();
-  }
-
-  const heading = [...document.querySelectorAll('h3')]
-    .find(el => (el.textContent || '').trim() === 'Agregar perfil piloto') || null;
-  const name = document.getElementById('newUserName');
-  const role = document.getElementById('newUserRole');
-  const area = document.getElementById('newUserArea');
-  const addBtn = document.getElementById('addUserBtn');
-  const hint = document.getElementById('p5Dev11ProfileHint');
-
-  const hr = heading?.previousElementSibling?.tagName === 'HR'
-    ? heading.previousElementSibling
-    : null;
-  const nameLabel = name?.closest('label.field') || null;
-  const fieldGrid = role?.closest('.field-grid') || area?.closest('.field-grid') || null;
-
-  // Se eliminan los nodos de administración del DOM; no se limitan a disabled/hidden.
-  // La barrera funcional de dev.11 permanece como defensa independiente.
-  [hr, heading, nameLabel, fieldGrid, addBtn, hint]
-    .filter(Boolean)
-    .forEach(el => el.remove());
-
-  return p5Dev15ProfileUiSnapshot();
-}
-
-function p5Dev15Stamp(){
-  if(!state) return;
+function p5Dev15Stamp() {
+  if (typeof state === 'undefined' || !state) return;
   state.version = P5_DEV15_VERSION;
   state.workspace ||= {};
   state.workspace.runtimeVersion = P5_DEV15_VERSION;
   state.workspace.storageNamespace = 'p5-preview::';
   state.workspace.releaseTrack = 'P5';
-  state.workspace.authorizationModel =
-    'role+macroModule+protected-profile-management+profile-ui-gate';
+  state.workspace.cie02Hotfix = P5_DEV15_HOTFIX;
 }
 
-const p5Dev15BaseRenderMore = renderMore;
-renderMore = function(){
-  p5Dev15BaseRenderMore();
-  const snapshot = p5Dev15ApplyProfileUiGate();
-  p5Dev15Stamp();
-  return snapshot;
-};
+function p5Dev15NormalizeCloseButtons() {
+  const anchor =
+    document.getElementById('dlgStatus') ||
+    document.getElementById('dlgEvidenceStatus') ||
+    document.getElementById('dlgScenario') ||
+    document.getElementById('dlgRoute') ||
+    document.getElementById('dlgOic');
 
-const p5Dev15BaseLoadData = loadData;
-loadData = async function(){
-  await p5Dev15BaseLoadData();
-  p5Dev15Stamp();
-  await idbSet(STATE_KEY,state);
-};
+  if (!anchor) return;
 
-const p5Dev15BaseSaveState = saveState;
-saveState = async function(logEntry){
-  await p5Dev15BaseSaveState(logEntry);
-  p5Dev15Stamp();
-  await idbSet(STATE_KEY,state);
-};
+  const dialogRoot =
+    anchor.closest('dialog') ||
+    anchor.closest('[role="dialog"]') ||
+    anchor.closest('.modal') ||
+    anchor.closest('.dialog') ||
+    anchor.closest('form') ||
+    anchor.parentElement;
 
-window.CATU_P5_DEV15 = Object.freeze({
-  version: P5_DEV15_VERSION,
-  canManageProfiles: p5Dev15CanManageProfiles,
-  inspect: p5Dev15ProfileUiSnapshot,
-  applyProfileUiGate: p5Dev15ApplyProfileUiGate
-});
+  if (!dialogRoot) return;
 
-console.info('[CATU E-R] P5 dev.15 Profile Management UI RBAC Gate cargado.');
+  Array.from(dialogRoot.querySelectorAll('button')).forEach((btn) => {
+    const text = String(btn.textContent || '').trim();
+    const aria = String(btn.getAttribute('aria-label') || '').trim().toLowerCase();
+    const title = String(btn.getAttribute('title') || '').trim().toLowerCase();
+
+    const isClose =
+      /^cerrar$/i.test(text) ||
+      /^(×|✕|✖|x)$/i.test(text) ||
+      aria === 'cerrar' || aria === 'close' ||
+      title === 'cerrar' || title === 'close';
+
+    if (isClose) {
+      btn.setAttribute('type', 'button');
+      btn.dataset.p5Dev15CloseNormalized = '1';
+    }
+  });
+}
+
+if (typeof openControl === 'function') {
+  const p5Dev15BaseOpenControl = openControl;
+  openControl = function(id) {
+    const result = p5Dev15BaseOpenControl(id);
+    p5Dev15NormalizeCloseButtons();
+    Promise.resolve().then(p5Dev15NormalizeCloseButtons);
+    return result;
+  };
+}
+
+p5Dev15NormalizeCloseButtons();
+
+if (typeof loadData === 'function') {
+  const p5Dev15BaseLoadData = loadData;
+  loadData = async function() {
+    await p5Dev15BaseLoadData();
+    p5Dev15Stamp();
+    if (typeof idbSet === 'function' && typeof STATE_KEY !== 'undefined') {
+      await idbSet(STATE_KEY, state);
+    }
+  };
+}
+
+if (typeof saveState === 'function') {
+  const p5Dev15BaseSaveState = saveState;
+  saveState = async function(logEntry) {
+    await p5Dev15BaseSaveState(logEntry);
+    p5Dev15Stamp();
+    if (typeof idbSet === 'function' && typeof STATE_KEY !== 'undefined') {
+      await idbSet(STATE_KEY, state);
+    }
+  };
+}
+
+window.CATU_CIE02_HOTFIX = P5_DEV15_HOTFIX;
+window.CATU_CIE02_NORMALIZE_CLOSE = p5Dev15NormalizeCloseButtons;
