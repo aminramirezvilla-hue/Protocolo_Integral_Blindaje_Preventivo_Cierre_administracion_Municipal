@@ -1,7 +1,7 @@
 'use strict';
 
 /* CATU E-R — P5-BL-003 / CIE-02 hotfix
- * Runtime: 0.1.4-dev.16
+ * Runtime: 0.1.8-dev.1
  * Load AFTER patch-p5-dev15.js.
  *
  * Purpose:
@@ -13,7 +13,7 @@
  */
 
 (() => {
-  const VERSION = '0.1.4-dev.16';
+  const VERSION = '0.1.8-dev.1';
   const HOTFIX = 'CIE-02-CLOSE-DELEGATED-v1.0';
   const INSTALL_FLAG = '__CATU_CIE02_DEV16_INSTALLED__';
 
