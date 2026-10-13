@@ -129,6 +129,11 @@
     state.version = VERSION;
     state.workspace ||= {};
     state.workspace.runtimeVersion = VERSION;
+
+    const runtimeBadge = document.getElementById('p4VersionBadge');
+    if (runtimeBadge) {
+      runtimeBadge.textContent = VERSION;
+    }
     state.workspace.storageNamespace = 'p5-preview::';
     state.workspace.releaseTrack = 'P5';
     state.workspace.cie02Hotfix = HOTFIX;
