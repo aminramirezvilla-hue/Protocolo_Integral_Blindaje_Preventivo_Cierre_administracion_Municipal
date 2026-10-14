@@ -336,7 +336,12 @@ renderMore = function() {
   p5Dev14BaseRenderMore();
 
   const badge = document.getElementById('p4VersionBadge');
-  if(badge) badge.textContent = P5_DEV14_VERSION;
+  if (badge) {
+      badge.textContent =
+        (state && state.workspace && state.workspace.runtimeVersion) ||
+        state.version ||
+        P5_DEV14_VERSION;
+    }
 
   const continuity = document.getElementById('p4ContinuityPanel');
   if(continuity && !document.getElementById('p5Mcr001Status')) {
