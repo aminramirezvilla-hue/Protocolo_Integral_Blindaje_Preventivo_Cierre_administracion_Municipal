@@ -119,7 +119,39 @@ function p5Dev9MergeState(localState,incoming,source){
   const merged={...local};
 
   merged.workspace={...(inc.workspace||{}),...(local.workspace||{})};
-  if(!local.workspace || local.workspace.municipality==='Municipio piloto') merged.workspace.municipality=inc.workspace?.municipality || local.workspace?.municipality || 'Municipio piloto';
+
+  // P5-XD-FIX-002:
+  // En restauración granular, un valor local vacío no debe bloquear
+  // un valor válido proveniente del respaldo.
+  const p5Dev9WorkspaceBlank = value =>
+    value === undefined ||
+    value === null ||
+    (typeof value === 'string' && value.trim() === '');
+
+  for (const field of [
+    'municipality',
+    'outgoingPeriod',
+    'incomingPeriod',
+    'notes'
+  ]) {
+    const localValue = local.workspace?.[field];
+    const incomingValue = inc.workspace?.[field];
+
+    const localDefaultMunicipality =
+      field === 'municipality' &&
+      localValue === 'Municipio piloto';
+
+    if (
+      (p5Dev9WorkspaceBlank(localValue) || localDefaultMunicipality) &&
+      !p5Dev9WorkspaceBlank(incomingValue)
+    ) {
+      merged.workspace[field] = structuredClone(incomingValue);
+    }
+  }
+
+  if (p5Dev9WorkspaceBlank(merged.workspace.municipality)) {
+    merged.workspace.municipality = 'Municipio piloto';
+  }
   merged.users=p5Dev9MergeUsers(local.users,inc.users);
   merged.currentUserId=local.currentUserId || inc.currentUserId;
   merged.config={...(inc.config||{}),...(local.config||{})};
