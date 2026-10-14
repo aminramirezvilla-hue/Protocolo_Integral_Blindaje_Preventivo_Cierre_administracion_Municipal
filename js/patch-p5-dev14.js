@@ -338,9 +338,10 @@ renderMore = function() {
   const badge = document.getElementById('p4VersionBadge');
   if (badge) {
       badge.textContent =
-        (state && state.workspace && state.workspace.runtimeVersion) ||
-        state.version ||
-        P5_DEV14_VERSION;
+      window.CATU_RUNTIME_VERSION ||
+      (state && state.workspace && state.workspace.runtimeVersion) ||
+      state.version ||
+      P5_DEV14_VERSION;
     }
 
   const continuity = document.getElementById('p4ContinuityPanel');

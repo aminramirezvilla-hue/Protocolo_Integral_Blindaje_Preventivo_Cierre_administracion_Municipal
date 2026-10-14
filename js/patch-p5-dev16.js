@@ -14,6 +14,7 @@
 
 (() => {
   const VERSION = '0.1.8-dev.1';
+  window.CATU_RUNTIME_VERSION = VERSION;
   const HOTFIX = 'CIE-02-CLOSE-DELEGATED-v1.0';
   const INSTALL_FLAG = '__CATU_CIE02_DEV16_INSTALLED__';
 
