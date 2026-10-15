@@ -1,4 +1,4 @@
-const CACHE = 'catu-er-v0.1.8-dev.1';
+const CACHE = 'catu-er-v0.1.8-rc.1';
 const APP_SHELL = [
   './', './index.html', './styles.css', './print-fix-v012.css', './manifest.webmanifest',
   './js/core.js', './js/views.js', './js/actions.js', './js/patch-evidence-v011.js', './js/patch-p4-dev1.js', './js/patch-p4-dev2.js', './js/patch-p5-dev1.js', './js/patch-p5-dev2.js', './js/patch-p5-dev3.js', './js/patch-p5-dev4.js', './js/patch-p5-dev5.js', './js/patch-p5-dev6.js', './js/patch-p5-dev7.js', './js/patch-p5-dev8.js', './js/patch-p5-dev9.js', './js/patch-p5-dev10.js', './js/patch-p5-dev11.js', './js/patch-p5-dev12.js', './js/patch-p5-dev13.js', './js/patch-p5-dev14.js', './js/patch-p5-dev15.js','./js/patch-p5-dev16.js', './js/patch-p6-dev1.js', './js/patch-p6-dev2.js', './js/patch-p6-dev3.js', './js/patch-p6-dev4.js',
