@@ -1748,11 +1748,14 @@ Las excepciones deberán identificarse explícitamente antes de producir migraci
 
 ### 13.5 Matriz maestra de unicidad
 
+La presente matriz consolida las restricciones de unicidad físicamente
+materializables documentadas en las secciones precedentes.
+
 | ID | Tabla | Columnas |
 |---|---|---|
 | G10-UQ01 | `periodo_entrega_recepcion` | `municipio_id, codigo` |
-| G10-UQ02 | `unidad_administrativa` | `periodo_er_id, codigo` |
-| G10-UQ03 | `actor_funcional` | `periodo_er_id, codigo` |
+| G10-UQ02 | `unidad_administrativa` | `municipio_id, codigo` |
+| G10-UQ03 | `actor_funcional` | `municipio_id, codigo` |
 | G10-UQ04 | `acto_entrega_recepcion` | `periodo_er_id, codigo` |
 | G10-UQ05 | `rol_funcional` | `codigo` |
 | G10-UQ06 | `capacidad_funcional` | `codigo` |
@@ -1762,8 +1765,32 @@ Las excepciones deberán identificarse explícitamente antes de producir migraci
 | G10-UQ10 | `control` | `periodo_er_id, codigo` |
 | G10-UQ11 | `vinculo_evidencia` | `evidencia_id, entity_type, entity_id, uso_evidencia` |
 | G10-UQ12 | `solicitud_aclaracion` | `discrepancia_id, secuencia` |
+| G10-UQ13 | `municipio` | `codigo` |
+| G10-UQ14 | `objeto_revision` | `acto_er_id, codigo` |
+| G10-UQ15 | `discrepancia` | `acto_er_id, codigo` |
+| G10-UQ16 | `aclaracion` | `solicitud_aclaracion_id` |
+| G10-UQ17 | `resolucion` | `discrepancia_id` |
 
-Las restricciones de unicidad deberán expresar identidad funcional y no sustituir las PK técnicas.
+Las restricciones de unicidad deberán expresar identidad funcional y no
+sustituir las PK técnicas.
+
+#### 13.5.1 Reconciliación documental de unicidades
+
+La consolidación precedente corrige una inconsistencia documental detectada
+durante la preparación de POST-RLS-G11.
+
+En particular:
+
+- `G10-UQ02` utiliza `municipio_id` como ámbito físico de
+  `unidad_administrativa`, conforme a la definición canónica de la tabla;
+- `G10-UQ03` conserva la intención de unicidad contextual ya presente en la
+  matriz maestra y utiliza `municipio_id`, que es el contexto institucional
+  obligatorio realmente definido para `actor_funcional`;
+- `G10-UQ13` a `G10-UQ17` incorporan restricciones de unicidad ya declaradas
+  expresamente en las reglas locales de las tablas correspondientes;
+- la reconciliación no altera PK, FK, cardinalidades, máquinas de estado,
+  RBAC, SoD ni reglas sustantivas de negocio;
+- la reconciliación continúa siendo documental y no genera SQL ejecutable.
 
 ### 13.6 Matriz maestra de CHECK
 
@@ -2143,7 +2170,7 @@ Crear las 23 tablas canónicas con:
 
 Incorporar:
 
-- G10-UQ01 a G10-UQ12;
+- G10-UQ01 a G10-UQ17;
 - G10-CK01 a G10-CK10;
 - restricciones declarativas locales.
 
@@ -2189,7 +2216,7 @@ Antes de generar DDL ejecutable deberá comprobarse:
 - 23/23 tablas;
 - 23/23 PK;
 - 43/43 FK;
-- 12/12 UQ;
+- 17/17 UQ;
 - 10/10 CHECK;
 - ausencia de ciclos no gestionados;
 - política referencial consistente;
@@ -2225,7 +2252,7 @@ G10-B10 se considerará completo cuando:
 - existan 8 niveles de materialización;
 - exista estrategia explícita para dependencias circulares;
 - existan 6 fases de materialización DDL;
-- el plan preserve las 23 PK, 43 FK, 12 UQ y 10 CHECK;
+- el plan preserve las 23 PK, 43 FK, 17 UQ y 10 CHECK;
 - se mantenga `RESTRICT` como política referencial base;
 - se diferencien constraints declarativos de integridad procedural;
 - no se haya generado SQL productivo;
@@ -2275,7 +2302,7 @@ G10 deberá conservar, como mínimo:
 - 23 entidades canónicas;
 - 23 PK;
 - 43 FK;
-- 12 restricciones UQ;
+- 17 restricciones UQ;
 - 10 restricciones CHECK;
 - política referencial restrictiva.
 
