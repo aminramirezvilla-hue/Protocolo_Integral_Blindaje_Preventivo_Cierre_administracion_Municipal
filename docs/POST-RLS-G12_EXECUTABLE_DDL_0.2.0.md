@@ -2179,3 +2179,169 @@ Al cierre de G12-B07:
 
 La autorización de materialización deberá producirse exclusivamente en gates
 posteriores y mediante evidencia verificable.
+
+#### 20. G12-B08-B03 — Concurrencia optimista gobernada
+
+##### 20.1 Propósito
+
+G12-B08-B03 establece el contrato físico de concurrencia optimista aplicable exclusivamente a las entidades cuya autoridad física aprobada incorpora `row_version`.
+
+Este gate determina la semántica que deberá respetar una implementación posterior en PostgreSQL/Supabase, pero no genera todavía funciones, triggers, sentencias `UPDATE`, migraciones ni modificaciones ejecutables del esquema.
+
+La concurrencia optimista se utilizará para impedir sobrescrituras silenciosas cuando dos actores intenten modificar una misma entidad a partir de versiones diferentes de su estado persistente.
+
+##### 20.2 Ámbito físico autorizado
+
+`row_version` se encuentra autorizado únicamente en las siguientes trece entidades:
+
+| Nº | Entidad | Mecanismo |
+|---:|---|---|
+| 1 | `ACTOR_FUNCIONAL` | `row_version` |
+| 2 | `ACTO_ENTREGA_RECEPCION` | `row_version` |
+| 3 | `ASIGNACION_FUNCIONAL` | `row_version` |
+| 4 | `CAPACIDAD_FUNCIONAL` | `row_version` |
+| 5 | `CONTROL` | `row_version` |
+| 6 | `DISCREPANCIA` | `row_version` |
+| 7 | `EVENTO_TRAZABILIDAD` | `row_version` |
+| 8 | `EVIDENCIA` | `row_version` |
+| 9 | `MUNICIPIO` | `row_version` |
+| 10 | `OBJETO_REVISION` | `row_version` |
+| 11 | `PERIODO_ENTREGA_RECEPCION` | `row_version` |
+| 12 | `ROL_FUNCIONAL` | `row_version` |
+| 13 | `UNIDAD_ADMINISTRATIVA` | `row_version` |
+
+No se autoriza extender `row_version` por convención a las restantes entidades de la baseline.
+
+##### 20.3 Regla C08-R01 — Estado inicial
+
+Toda instancia nueva de una entidad incluida en el ámbito de concurrencia optimista deberá iniciar conceptualmente con:
+
+`row_version = 1`
+
+La forma ejecutable de asignación del valor inicial se resolverá en un gate posterior.
+
+##### 20.4 Regla C08-R02 — Precondición de actualización
+
+Toda operación de actualización gobernada por concurrencia optimista deberá disponer, como mínimo, de:
+
+- la clave primaria de la instancia que se pretende modificar; y
+- el valor de `row_version` conocido por el solicitante al momento de efectuar la lectura previa.
+
+La actualización no podrá basarse exclusivamente en la clave primaria.
+
+##### 20.5 Regla C08-R03 — Coincidencia obligatoria de versión
+
+Una modificación será admisible únicamente cuando el valor de `row_version` suministrado por el solicitante coincida con el valor vigente almacenado para la misma instancia.
+
+Conceptualmente:
+
+`PK solicitada = PK persistida`
+
+y
+
+`row_version esperado = row_version persistido`
+
+constituyen conjuntamente la precondición de concurrencia de una actualización gobernada.
+
+##### 20.6 Regla C08-R04 — Incremento monotónico
+
+Después de una actualización válida, `row_version` deberá incrementarse exactamente en una unidad.
+
+Si la versión aceptada es `N`, la versión resultante será:
+
+`N + 1`
+
+No se autoriza:
+
+- decremento;
+- reutilización de versiones anteriores;
+- conservación silenciosa de `N` después de una modificación gobernada;
+- incremento arbitrario distinto de la política aprobada.
+
+##### 20.7 Regla C08-R05 — Conflicto de concurrencia
+
+Cuando la versión suministrada por el solicitante no coincida con la versión vigente almacenada, la operación deberá considerarse un conflicto de concurrencia.
+
+El resultado deberá equivaler semánticamente a:
+
+- ninguna instancia válida para actualizar bajo la precondición suministrada;
+- ninguna sobrescritura silenciosa;
+- ninguna sustitución automática del valor persistente;
+- señalización explícita del conflicto a la capa solicitante.
+
+##### 20.8 Regla C08-R06 — Prohibición de last-write-wins silencioso
+
+La arquitectura no autoriza una política implícita de `last-write-wins` para las trece entidades gobernadas por `row_version`.
+
+Una solicitud basada en una versión obsoleta no podrá sobrescribir silenciosamente una modificación posterior ya persistida.
+
+##### 20.9 Regla C08-R07 — Separación semántica
+
+`row_version` representa exclusivamente control de concurrencia optimista.
+
+No deberá utilizarse como:
+
+- timestamp;
+- clave primaria;
+- identificador funcional;
+- sustituto de `created_at`;
+- sustituto de `updated_at`;
+- mecanismo de vigencia temporal;
+- indicador de estado funcional;
+- mecanismo de auditoría histórica.
+
+Las responsabilidades permanecen separadas:
+
+| Mecanismo | Responsabilidad |
+|---|---|
+| `row_version` | concurrencia optimista |
+| `created_at` | instante de creación |
+| `updated_at` | instante de modificación cuando aplique |
+| `vigente_desde` | inicio de vigencia |
+| `vigente_hasta` | fin de vigencia |
+| SM-ER / SM-DIS | estados y transiciones funcionales |
+| trazabilidad | historia causal y evidencia |
+
+##### 20.10 Regla C08-R08 — Frontera procedural
+
+La implementación concreta del incremento de `row_version` permanece diferida.
+
+Este gate no decide todavía si el mecanismo ejecutable definitivo se materializará mediante:
+
+- lógica transaccional explícita;
+- función PostgreSQL;
+- trigger;
+- RPC;
+- capa de aplicación;
+- u otro mecanismo técnicamente compatible con la arquitectura aprobada.
+
+La elección deberá realizarse en un gate posterior con control de atomicidad, seguridad, RLS y comportamiento transaccional.
+
+##### 20.11 Contrato lógico de actualización
+
+El contrato lógico autorizado es:
+
+```text
+CLIENTE
+    conoce:
+        primary_key = K
+        row_version = N
+
+SOLICITUD
+    modificar entidad K
+    condicionada a row_version = N
+
+CASO A — COINCIDENCIA
+    versión persistida = N
+
+    resultado:
+        modificación aceptada
+        row_version resultante = N + 1
+
+CASO B — NO COINCIDENCIA
+    versión persistida != N
+
+    resultado:
+        modificación rechazada por concurrencia
+        ninguna sobrescritura silenciosa
+        estado persistente conservado
