@@ -2192,7 +2192,7 @@ La concurrencia optimista se utilizará para impedir sobrescrituras silenciosas 
 
 ##### 20.2 Ámbito físico autorizado
 
-`row_version` se encuentra autorizado únicamente en las siguientes trece entidades:
+`row_version` se encuentra autorizado únicamente en las siguientes doce entidades:
 
 | Nº | Entidad | Mecanismo |
 |---:|---|---|
@@ -2202,13 +2202,12 @@ La concurrencia optimista se utilizará para impedir sobrescrituras silenciosas 
 | 4 | `CAPACIDAD_FUNCIONAL` | `row_version` |
 | 5 | `CONTROL` | `row_version` |
 | 6 | `DISCREPANCIA` | `row_version` |
-| 7 | `EVENTO_TRAZABILIDAD` | `row_version` |
-| 8 | `EVIDENCIA` | `row_version` |
-| 9 | `MUNICIPIO` | `row_version` |
-| 10 | `OBJETO_REVISION` | `row_version` |
-| 11 | `PERIODO_ENTREGA_RECEPCION` | `row_version` |
-| 12 | `ROL_FUNCIONAL` | `row_version` |
-| 13 | `UNIDAD_ADMINISTRATIVA` | `row_version` |
+| 7 | `EVIDENCIA` | `row_version` |
+| 8 | `MUNICIPIO` | `row_version` |
+| 9 | `OBJETO_REVISION` | `row_version` |
+| 10 | `PERIODO_ENTREGA_RECEPCION` | `row_version` |
+| 11 | `ROL_FUNCIONAL` | `row_version` |
+| 12 | `UNIDAD_ADMINISTRATIVA` | `row_version` |
 
 No se autoriza extender `row_version` por convención a las restantes entidades de la baseline.
 
@@ -2271,7 +2270,7 @@ El resultado deberá equivaler semánticamente a:
 
 ##### 20.8 Regla C08-R06 — Prohibición de last-write-wins silencioso
 
-La arquitectura no autoriza una política implícita de `last-write-wins` para las trece entidades gobernadas por `row_version`.
+La arquitectura no autoriza una política implícita de `last-write-wins` para las doce entidades gobernadas por `row_version`.
 
 Una solicitud basada en una versión obsoleta no podrá sobrescribir silenciosamente una modificación posterior ya persistida.
 
