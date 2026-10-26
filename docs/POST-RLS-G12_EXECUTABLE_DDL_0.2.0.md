@@ -2346,9 +2346,9 @@ CASO B — NO COINCIDENCIA
         ninguna sobrescritura silenciosa
         estado persistente conservado
 
-##### 21. G12-B08-B04 — Política física gobernada de timestamps
+#### 21. G12-B08-B04 — Política física gobernada de timestamps
 
-###### 21.1 Propósito
+##### 21.1 Propósito
 
 G12-B08-B04 establece la política física gobernada para los timestamps del
 modelo POST-RLS-G12, preservando exactamente el ámbito materializado en el
@@ -2365,7 +2365,7 @@ La presente decisión distingue expresamente:
 
 Estas responsabilidades no son intercambiables.
 
-###### 21.2 Autoridad física acreditada
+##### 21.2 Autoridad física acreditada
 
 La autoridad física reconstruida desde las 23 entidades G10 establece:
 
@@ -2389,7 +2389,7 @@ La cardinalidad física autoritativa es, por tanto:
 Esta matriz sustituye cualquier conteo documental previo que hubiera
 interpretado menciones conceptuales de `updated_at` como materialización física.
 
-###### 21.3 Regla C08-T01 — `created_at`
+##### 21.3 Regla C08-T01 — `created_at`
 
 `created_at` representa exclusivamente el instante persistente de creación de
 la fila.
@@ -2404,7 +2404,7 @@ La política física aprobada es:
 6. no representa vigencia funcional;
 7. no debe modificarse como consecuencia de una actualización ordinaria.
 
-###### 21.4 Regla C08-T02 — `updated_at`
+##### 21.4 Regla C08-T02 — `updated_at`
 
 `updated_at` representa el instante de modificación cuando la semántica física
 de la entidad requiere registrar modificaciones posteriores.
@@ -2419,7 +2419,7 @@ La política física aprobada es:
 6. no sustituye `row_version`;
 7. no constituye por sí solo historial de cambios.
 
-###### 21.5 Regla C08-T03 — Relación `created_at` / `updated_at`
+##### 21.5 Regla C08-T03 — Relación `created_at` / `updated_at`
 
 El modelo preservará la relación:
 
@@ -2433,7 +2433,7 @@ En consecuencia:
 - la ausencia de `updated_at` no constituye defecto estructural cuando G10 no
   lo autoriza.
 
-###### 21.6 Regla C08-T04 — Separación respecto de `row_version`
+##### 21.6 Regla C08-T04 — Separación respecto de `row_version`
 
 `row_version` y los timestamps cumplen responsabilidades distintas.
 
@@ -2452,7 +2452,7 @@ En consecuencia:
 No se autoriza implementar concurrencia mediante comparación exclusiva de
 timestamps.
 
-###### 21.7 Regla C08-T05 — Separación respecto de vigencia temporal
+##### 21.7 Regla C08-T05 — Separación respecto de vigencia temporal
 
 `vigente_desde` y `vigente_hasta` representan vigencia funcional.
 
@@ -2465,7 +2465,7 @@ No son equivalentes a:
 La vigencia de una relación o asignación puede diferir de sus instantes de
 creación o modificación física.
 
-###### 21.8 Regla C08-T06 — `EVENTO_TRAZABILIDAD`
+##### 21.8 Regla C08-T06 — `EVENTO_TRAZABILIDAD`
 
 `EVENTO_TRAZABILIDAD` conserva:
 
@@ -2478,7 +2478,7 @@ destructiva y trazabilidad causal.
 
 G12-B08-B04 no incorporará `updated_at` a `EVENTO_TRAZABILIDAD`.
 
-###### 21.9 Regla C08-T07 — No propagación por convención
+##### 21.9 Regla C08-T07 — No propagación por convención
 
 No se autoriza añadir un timestamp a una entidad exclusivamente porque otras
 entidades lo posean.
@@ -2492,7 +2492,7 @@ Toda ampliación posterior deberá acreditar:
 - interacción con concurrencia;
 - compatibilidad con el modelo físico aprobado.
 
-###### 21.10 Regla C08-T08 — Actualización automática diferida
+##### 21.10 Regla C08-T08 — Actualización automática diferida
 
 La existencia física de `updated_at` no decide todavía el mecanismo mediante el
 cual será actualizado.
@@ -2508,7 +2508,7 @@ Queda diferida la elección entre:
 El mecanismo ejecutable deberá definirse en un gate posterior junto con sus
 propiedades de atomicidad, permisos, RLS y comportamiento transaccional.
 
-###### 21.11 Invariantes preservados
+##### 21.11 Invariantes preservados
 
 G12-B08-B04 preserva íntegramente:
 
@@ -2522,7 +2522,7 @@ G12-B08-B04 preserva íntegramente:
 - semántica de historia no destructiva;
 - separación entre persistencia, concurrencia, vigencia y trazabilidad.
 
-###### 21.12 Frontera de implementación
+##### 21.12 Frontera de implementación
 
 G12-B08-B04 no:
 
@@ -2540,7 +2540,7 @@ G12-B08-B04 no:
 
 La materialización ejecutable permanece gobernadamente diferida.
 
-###### 21.13 Resultado de decisión
+##### 21.13 Resultado de decisión
 
 Al cierre de G12-B08-B04 queda establecido que:
 
