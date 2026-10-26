@@ -2345,3 +2345,212 @@ CASO B — NO COINCIDENCIA
         modificación rechazada por concurrencia
         ninguna sobrescritura silenciosa
         estado persistente conservado
+
+#### 21. G12-B08-B04 — Política física gobernada de timestamps
+
+##### 21.1 Propósito
+
+G12-B08-B04 establece la política física gobernada para los timestamps del
+modelo POST-RLS-G12, preservando exactamente el ámbito materializado en el
+diccionario físico G10 y evitando introducir timestamps por mera convención.
+
+La presente decisión distingue expresamente:
+
+- instante de creación;
+- instante de modificación;
+- concurrencia optimista;
+- vigencia temporal;
+- terminalidad funcional;
+- trazabilidad histórica.
+
+Estas responsabilidades no son intercambiables.
+
+##### 21.2 Autoridad física acreditada
+
+La autoridad física reconstruida desde las 23 entidades G10 establece:
+
+- `created_at` está materializado en las 23 entidades;
+- `updated_at` está materializado en 10 entidades;
+- toda entidad que posee `updated_at` posee también `created_at`;
+- existen 13 entidades que poseen únicamente `created_at`;
+- no existe entidad que posea `updated_at` sin `created_at`;
+- todos los timestamps físicos usan PostgreSQL `timestamptz`;
+- los timestamps materializados son `NOT NULL`.
+
+La cardinalidad física autoritativa es, por tanto:
+
+| Mecanismo | Entidades físicas |
+|---|---:|
+| `created_at` | 23 |
+| `updated_at` | 10 |
+| sólo `created_at` | 13 |
+| sólo `updated_at` | 0 |
+
+Esta matriz sustituye cualquier conteo documental previo que hubiera
+interpretado menciones conceptuales de `updated_at` como materialización física.
+
+##### 21.3 Regla C08-T01 — `created_at`
+
+`created_at` representa exclusivamente el instante persistente de creación de
+la fila.
+
+La política física aprobada es:
+
+1. permanece presente en las 23 entidades G10;
+2. mantiene tipo `timestamptz`;
+3. mantiene nulabilidad `NOT NULL`;
+4. no representa versión de concurrencia;
+5. no sustituye `row_version`;
+6. no representa vigencia funcional;
+7. no debe modificarse como consecuencia de una actualización ordinaria.
+
+##### 21.4 Regla C08-T02 — `updated_at`
+
+`updated_at` representa el instante de modificación cuando la semántica física
+de la entidad requiere registrar modificaciones posteriores.
+
+La política física aprobada es:
+
+1. permanece únicamente en las 10 entidades donde G10 lo materializa;
+2. mantiene tipo `timestamptz`;
+3. mantiene nulabilidad `NOT NULL`;
+4. no se propagará automáticamente a las 13 entidades restantes;
+5. no constituye mecanismo de concurrencia;
+6. no sustituye `row_version`;
+7. no constituye por sí solo historial de cambios.
+
+##### 21.5 Regla C08-T03 — Relación `created_at` / `updated_at`
+
+El modelo preservará la relación:
+
+`updated_at ⊂ created_at`
+
+En consecuencia:
+
+- toda entidad con `updated_at` deberá conservar `created_at`;
+- una entidad puede poseer únicamente `created_at`;
+- una entidad no podrá poseer `updated_at` sin `created_at`;
+- la ausencia de `updated_at` no constituye defecto estructural cuando G10 no
+  lo autoriza.
+
+##### 21.6 Regla C08-T04 — Separación respecto de `row_version`
+
+`row_version` y los timestamps cumplen responsabilidades distintas.
+
+`row_version`:
+
+- gobierna concurrencia optimista;
+- participa en la precondición de actualización;
+- se incrementa monotónicamente cuando procede.
+
+`created_at` y `updated_at`:
+
+- expresan temporalidad de persistencia;
+- no deben emplearse como tokens de concurrencia;
+- no sustituyen la comparación de versión.
+
+No se autoriza implementar concurrencia mediante comparación exclusiva de
+timestamps.
+
+##### 21.7 Regla C08-T05 — Separación respecto de vigencia temporal
+
+`vigente_desde` y `vigente_hasta` representan vigencia funcional.
+
+No son equivalentes a:
+
+- `created_at`;
+- `updated_at`;
+- `row_version`.
+
+La vigencia de una relación o asignación puede diferir de sus instantes de
+creación o modificación física.
+
+##### 21.8 Regla C08-T06 — `EVENTO_TRAZABILIDAD`
+
+`EVENTO_TRAZABILIDAD` conserva:
+
+- `occurred_at` como instante causal del evento;
+- `created_at` como instante de persistencia;
+- ausencia física de `updated_at`.
+
+Esta ausencia es deliberada y consistente con la semántica de historia no
+destructiva y trazabilidad causal.
+
+G12-B08-B04 no incorporará `updated_at` a `EVENTO_TRAZABILIDAD`.
+
+##### 21.9 Regla C08-T07 — No propagación por convención
+
+No se autoriza añadir un timestamp a una entidad exclusivamente porque otras
+entidades lo posean.
+
+Toda ampliación posterior deberá acreditar:
+
+- necesidad funcional;
+- semántica temporal;
+- impacto transaccional;
+- interacción con auditoría;
+- interacción con concurrencia;
+- compatibilidad con el modelo físico aprobado.
+
+##### 21.10 Regla C08-T08 — Actualización automática diferida
+
+La existencia física de `updated_at` no decide todavía el mecanismo mediante el
+cual será actualizado.
+
+Queda diferida la elección entre:
+
+- lógica de aplicación;
+- función PostgreSQL;
+- trigger;
+- RPC;
+- otro mecanismo técnicamente compatible.
+
+El mecanismo ejecutable deberá definirse en un gate posterior junto con sus
+propiedades de atomicidad, permisos, RLS y comportamiento transaccional.
+
+##### 21.11 Invariantes preservados
+
+G12-B08-B04 preserva íntegramente:
+
+- 23 entidades;
+- 23 PK;
+- 43 FK;
+- 17 UQ;
+- 10 CHECK;
+- 18 índices candidatos;
+- política de concurrencia B03;
+- semántica de historia no destructiva;
+- separación entre persistencia, concurrencia, vigencia y trazabilidad.
+
+##### 21.12 Frontera de implementación
+
+G12-B08-B04 no:
+
+- modifica `backend/supabase/schema.sql`;
+- crea o modifica tablas;
+- ejecuta `ALTER TABLE`;
+- crea funciones;
+- crea triggers;
+- habilita o modifica RLS;
+- modifica Auth;
+- modifica Storage;
+- ejecuta migraciones;
+- modifica datos;
+- impone `updated_at` a las 23 entidades.
+
+La materialización ejecutable permanece gobernadamente diferida.
+
+##### 21.13 Resultado de decisión
+
+Al cierre de G12-B08-B04 queda establecido que:
+
+- `created_at` tiene autoridad física en 23 entidades;
+- `updated_at` tiene autoridad física en 10 entidades;
+- las 10 entidades con `updated_at` son subconjunto de las 23 con `created_at`;
+- las restantes 13 entidades no requieren `updated_at` por simple convención;
+- `EVENTO_TRAZABILIDAD` conserva deliberadamente ausencia de `updated_at`;
+- los timestamps no sustituyen `row_version`;
+- timestamps, concurrencia, vigencia e historia conservan semánticas separadas;
+- la automatización efectiva de `updated_at` permanece diferida.
+
+No se genera ni ejecuta DDL en este gate.
