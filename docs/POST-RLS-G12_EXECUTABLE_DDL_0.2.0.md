@@ -1939,3 +1939,243 @@ La existencia polimórfica continúa diferida a G12-B09.
 
 G12-B06 no ejecuta todavía DDL en PostgreSQL/Supabase y no crea todavía
 archivos `.sql`.
+
+#### 19. Estrategia física gobernada de índices
+
+##### 19.1 Propósito
+
+Este bloque consolida la estrategia física de índices derivada de
+`G12-B07`, preservando la baseline estructural aprobada y evitando
+materialización redundante, especulativa o prematura.
+
+La estrategia distingue expresamente entre:
+
+- índices implícitos derivados de PK;
+- índices implícitos derivados de UQ;
+- candidatos físicos adicionales;
+- estructuras descartadas por redundancia;
+- estructuras diferidas por ausencia de evidencia suficiente;
+- materialización futura condicionada a validación empírica.
+
+Este bloque constituye especificación física gobernada y no ejecuta DDL.
+
+##### 19.2 Baseline preservada
+
+G12-B07 preserva exactamente:
+
+- 23 entidades;
+- 23 PK;
+- 43 FK;
+- 17 UQ;
+- 10 CHECK;
+- 18 índices candidatos históricos;
+- SM-ER;
+- SM-DIS;
+- ER-T07;
+- RBAC;
+- SoD;
+- denegación por defecto;
+- trazabilidad causal.
+
+La existencia de los 18 índices candidatos históricos no implica que deban
+materializarse 18 índices físicos adicionales.
+
+##### 19.3 Regla de cobertura por PK y UQ
+
+Toda PK materializada en PostgreSQL dispondrá de la estructura física
+implícita correspondiente.
+
+Toda UQ materializada mediante restricción `UNIQUE` dispondrá igualmente
+de su estructura física de soporte.
+
+Por tanto:
+
+- no se duplicará una PK mediante un `CREATE INDEX` equivalente;
+- no se duplicará una UQ mediante un `CREATE UNIQUE INDEX` equivalente;
+- podrá descartarse un índice adicional cuando una UQ ya cubra de forma
+  suficiente el mismo prefijo izquierdo requerido por el patrón de acceso.
+
+##### 19.4 Candidatos descartados por redundancia
+
+Los siguientes candidatos preliminares quedan retirados de la cartera
+física adicional:
+
+| ID | Tabla | Propuesta preliminar | Resolución |
+|---|---|---|---|
+| IX-P01 | `unidad_administrativa` | `(municipio_id)` | REDUNDANTE con UQ `(municipio_id, codigo)` |
+| IX-P02 | `actor_funcional` | `(municipio_id)` | REDUNDANTE con UQ `(municipio_id, codigo)` |
+| IX-P03 | `acto_entrega_recepcion` | `(periodo_er_id)` | REDUNDANTE con UQ `(periodo_er_id, codigo)` |
+| IX-P08 | `solicitud_aclaracion` | `(discrepancia_id)` | REDUNDANTE con UQ `(discrepancia_id, secuencia)` |
+
+La eliminación de estos cuatro candidatos no modifica las 17 UQ canónicas.
+
+##### 19.5 Cartera gobernada de índices físicos adicionales
+
+La cartera física provisional queda reducida a ocho candidatos:
+
+| ID | Tabla | Columnas, en orden | Método previsto | Unique | Finalidad |
+|---|---|---|---|---|---|
+| IX-P04 | `evaluacion` | `objeto_revision_id` | `btree` | NO | evaluaciones por objeto de revisión |
+| IX-P05 | `evaluacion` | `control_id` | `btree` | NO | evaluaciones por control |
+| IX-P06 | `observacion` | `evaluacion_id` | `btree` | NO | observaciones por evaluación |
+| IX-P07 | `validacion` | `evaluacion_id` | `btree` | NO | validaciones por evaluación |
+| IX-P09 | `aclaracion` | `solicitud_aclaracion_id` | `btree` | NO | aclaraciones por solicitud |
+| IX-P10 | `vinculo_evidencia` | `entity_type, entity_id` | `btree` | NO | resolución de vínculo polimórfico |
+| IX-P11 | `evento_trazabilidad` | `correlation_id, occurred_at` | `btree` | NO | trazabilidad cronológica por correlación |
+| IX-P12 | `transicion_funcional` | `estado_origen_id, estado_destino_id` | `btree` | NO | navegación de transición |
+
+Los ocho registros anteriores constituyen candidatos gobernados de diseño.
+No equivalen todavía a órdenes `CREATE INDEX` autorizadas.
+
+##### 19.6 Orden de columnas de índices compuestos
+
+Para los candidatos compuestos se fija el siguiente orden:
+
+- `IX-P10`: `entity_type, entity_id`;
+- `IX-P11`: `correlation_id, occurred_at`;
+- `IX-P12`: `estado_origen_id, estado_destino_id`.
+
+El orden responde al patrón lógico de acceso previsto y a la semántica de
+prefijo izquierdo de índices B-tree.
+
+No podrá invertirse el orden de las columnas sin una decisión técnica
+posterior sustentada en evidencia de consultas y planes de ejecución.
+
+##### 19.7 Índice polimórfico
+
+`IX-P10` deberá considerar conjuntamente:
+
+- `entity_type`;
+- `entity_id`.
+
+No se autoriza un índice aislado sobre `entity_id` para la asociación
+polimórfica, debido a que dicho identificador carece de semántica suficiente
+sin su discriminador de tipo.
+
+##### 19.8 Trazabilidad correlacionada
+
+`IX-P11` conserva el orden:
+
+`correlation_id, occurred_at`
+
+porque el patrón previsto consiste en recuperar eventos pertenecientes a una
+misma correlación y posteriormente ordenarlos temporalmente.
+
+La inclusión de `occurred_at` no autoriza por sí misma un índice temporal
+independiente.
+
+##### 19.9 Navegación de transiciones
+
+`IX-P12` conserva el orden:
+
+`estado_origen_id, estado_destino_id`
+
+para permitir navegación por estado de origen y discriminación posterior por
+estado de destino.
+
+Este índice no sustituye las reglas de integridad ni la máquina de estados
+canónica.
+
+##### 19.10 Candidatos diferidos
+
+Permanecen diferidos, entre otros:
+
+- `causation_id`;
+- `vigente_desde`;
+- `vigente_hasta`;
+- `content_hash`;
+- `row_version`;
+- `created_at`;
+- `updated_at`;
+- cualquier índice aislado sobre timestamps;
+- cualquier estructura `actor_er_id + codigo` no acreditada;
+- cualquier índice adicional derivado únicamente de la existencia de una FK.
+
+Su eventual incorporación requerirá evidencia específica de patrón de acceso.
+
+##### 19.11 Contrato de materialización
+
+Un candidato de esta sección sólo podrá convertirse en índice físico
+ejecutable cuando el gate correspondiente acredite, como mínimo:
+
+1. tabla física definitiva;
+2. columnas definitivas;
+3. orden definitivo de columnas;
+4. inexistencia de índice equivalente;
+5. inexistencia de cobertura suficiente por PK/UQ;
+6. patrón de acceso identificable;
+7. cardinalidad o distribución de datos cuando sea relevante;
+8. selectividad razonable cuando sea relevante;
+9. plan de ejecución verificable;
+10. ausencia de degradación desproporcionada en escritura;
+11. compatibilidad con PostgreSQL objetivo;
+12. trazabilidad hacia esta decisión arquitectónica.
+
+La materialización podrá utilizar `CREATE INDEX` sólo después de superar
+los gates posteriores expresamente definidos para ello.
+
+##### 19.12 Validación empírica diferida
+
+La siguiente evidencia queda deliberadamente diferida hasta disponer de un
+entorno aislado y datos suficientemente representativos:
+
+- cardinalidad real;
+- distribución de valores;
+- selectividad real;
+- fan-out real;
+- frecuencia real de consultas;
+- `EXPLAIN`;
+- `EXPLAIN ANALYZE`;
+- comparación con/sin índice;
+- costo de almacenamiento;
+- impacto sobre `INSERT`, `UPDATE` y `DELETE`.
+
+No se inventarán valores sustitutos para estas métricas.
+
+##### 19.13 Política de minimización
+
+La política de G12-B07 será mantener la menor cartera física capaz de
+justificarse arquitectónicamente.
+
+Por tanto:
+
+- más índices no implica mayor conformidad;
+- las 43 FK no implican 43 índices adicionales;
+- los 18 candidatos históricos son una cota documental de referencia, no una
+  obligación de materialización;
+- un índice deberá demostrar utilidad independiente de una PK/UQ existente;
+- todo índice compuesto deberá justificar su prefijo izquierdo;
+- toda ampliación posterior requerirá trazabilidad de decisión.
+
+##### 19.14 Frontera de implementación
+
+G12-B07 no:
+
+- modifica `backend/supabase/schema.sql`;
+- genera todavía migraciones ejecutables;
+- ejecuta `CREATE INDEX`;
+- ejecuta `CREATE UNIQUE INDEX`;
+- ejecuta `ANALYZE`;
+- modifica Supabase;
+- modifica Auth;
+- modifica Storage;
+- habilita o modifica RLS;
+- aplica migraciones.
+
+La materialización SQL efectiva permanece gobernadamente diferida.
+
+##### 19.15 Resultado de decisión
+
+Al cierre de G12-B07:
+
+- la cartera preliminar de 12 diseños se reduce a 8 candidatos;
+- 4 propuestas quedan descartadas por redundancia física;
+- PK y UQ conservan su cobertura implícita;
+- los 8 candidatos restantes poseen justificación arquitectónica ex ante;
+- la selectividad empírica permanece diferida;
+- no existe todavía autorización para ejecutar `CREATE INDEX`;
+- no se modifica la baseline de 23 entidades, 23 PK, 43 FK, 17 UQ y 10 CHECK;
+- no se introduce SQL ejecutable durante esta decisión.
+
+La autorización de materialización deberá producirse exclusivamente en gates
+posteriores y mediante evidencia verificable.
