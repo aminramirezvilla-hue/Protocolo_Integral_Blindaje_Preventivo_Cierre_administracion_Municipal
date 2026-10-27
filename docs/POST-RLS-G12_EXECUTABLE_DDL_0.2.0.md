@@ -2553,3 +2553,271 @@ Al cierre de G12-B08-B04 queda establecido que:
 - la automatización efectiva de `updated_at` permanece diferida.
 
 No se genera ni ejecuta DDL en este gate.
+
+#### 22. G12-B08-B05 — Contrato canónico de mutabilidad genérica
+
+##### 22.1 Propósito
+
+Este bloque fija la autoridad documental canónica de mutabilidad para el contrato lógico `guarded_update` definido en G12-B08-B05.
+
+La política es `default-deny`: únicamente los atributos clasificados expresamente como `ALLOW_GENERIC` pueden participar en el payload del contrato genérico.
+
+La clasificación `DENY_GENERIC` significa exclusión del contrato genérico y no implica necesariamente inmutabilidad global. Cuando una mutación futura sea válida deberá ejecutarse mediante el contrato especializado correspondiente.
+
+##### 22.2 Autoridad acreditada
+
+- Universo canónico de concurrencia: **12 entidades**.
+- Campos `ALLOW_GENERIC`: **33**.
+- Campos `DENY_GENERIC`: **22**.
+- Exclusiones estructurales: **65**.
+- Invariantes del contrato genérico: **16**.
+- `EVENTO_TRAZABILIDAD` permanece fuera de `target_entity`.
+- RLS y allowlist permanecen como controles independientes.
+
+##### 22.3 Matriz canónica de mutabilidad por entidad
+
+###### 22.3.1 `MUNICIPIO`
+
+| Clasificación | Campo | Motivo | Ruta |
+|---|---|---|---|
+| `ALLOW_GENERIC` | `Columna` | atributo funcional autorizado | `guarded_update` |
+| `ALLOW_GENERIC` | `nombre` | atributo funcional autorizado | `guarded_update` |
+| `DENY_GENERIC` | `activo` | `ESTADO_WORKFLOW` | `STATE_TRANSITION_CONTRACT` |
+| `DENY_GENERIC` | `codigo` | `IDENTIDAD` | `DEDICATED_IDENTITY_CONTRACT` |
+| `DENY_PK` | `municipio_id` | exclusión estructural | no aplica al payload genérico |
+| `DENY_SYSTEM` | `created_at` | exclusión estructural | no aplica al payload genérico |
+| `DENY_SYSTEM` | `row_version` | exclusión estructural | no aplica al payload genérico |
+| `DENY_SYSTEM` | `updated_at` | exclusión estructural | no aplica al payload genérico |
+
+###### 22.3.2 `PERIODO_ENTREGA_RECEPCION`
+
+| Clasificación | Campo | Motivo | Ruta |
+|---|---|---|---|
+| `ALLOW_GENERIC` | `Columna` | atributo funcional autorizado | `guarded_update` |
+| `DENY_GENERIC` | `codigo` | `IDENTIDAD` | `DEDICATED_IDENTITY_CONTRACT` |
+| `DENY_GENERIC` | `fecha_fin` | `TEMPORAL` | `TEMPORAL_DOMAIN_CONTRACT` |
+| `DENY_GENERIC` | `fecha_inicio` | `TEMPORAL` | `TEMPORAL_DOMAIN_CONTRACT` |
+| `DENY_PK` | `periodo_er_id` | exclusión estructural | no aplica al payload genérico |
+| `DENY_RELATION` | `estado_er_id` | exclusión estructural | no aplica al payload genérico |
+| `DENY_RELATION` | `municipio_id` | exclusión estructural | no aplica al payload genérico |
+| `DENY_SYSTEM` | `created_at` | exclusión estructural | no aplica al payload genérico |
+| `DENY_SYSTEM` | `row_version` | exclusión estructural | no aplica al payload genérico |
+| `DENY_SYSTEM` | `updated_at` | exclusión estructural | no aplica al payload genérico |
+
+###### 22.3.3 `UNIDAD_ADMINISTRATIVA`
+
+| Clasificación | Campo | Motivo | Ruta |
+|---|---|---|---|
+| `ALLOW_GENERIC` | `Columna` | atributo funcional autorizado | `guarded_update` |
+| `ALLOW_GENERIC` | `nombre` | atributo funcional autorizado | `guarded_update` |
+| `DENY_GENERIC` | `activo` | `ESTADO_WORKFLOW` | `STATE_TRANSITION_CONTRACT` |
+| `DENY_GENERIC` | `codigo` | `IDENTIDAD` | `DEDICATED_IDENTITY_CONTRACT` |
+| `DENY_PK` | `unidad_id` | exclusión estructural | no aplica al payload genérico |
+| `DENY_RELATION` | `municipio_id` | exclusión estructural | no aplica al payload genérico |
+| `DENY_SYSTEM` | `created_at` | exclusión estructural | no aplica al payload genérico |
+| `DENY_SYSTEM` | `row_version` | exclusión estructural | no aplica al payload genérico |
+| `DENY_SYSTEM` | `updated_at` | exclusión estructural | no aplica al payload genérico |
+
+###### 22.3.4 `ACTOR_FUNCIONAL`
+
+| Clasificación | Campo | Motivo | Ruta |
+|---|---|---|---|
+| `ALLOW_GENERIC` | `Columna` | atributo funcional autorizado | `guarded_update` |
+| `ALLOW_GENERIC` | `nombre` | atributo funcional autorizado | `guarded_update` |
+| `DENY_GENERIC` | `activo` | `ESTADO_WORKFLOW` | `STATE_TRANSITION_CONTRACT` |
+| `DENY_GENERIC` | `codigo` | `IDENTIDAD` | `DEDICATED_IDENTITY_CONTRACT` |
+| `DENY_PK` | `actor_id` | exclusión estructural | no aplica al payload genérico |
+| `DENY_RELATION` | `municipio_id` | exclusión estructural | no aplica al payload genérico |
+| `DENY_RELATION` | `unidad_id` | exclusión estructural | no aplica al payload genérico |
+| `DENY_SYSTEM` | `created_at` | exclusión estructural | no aplica al payload genérico |
+| `DENY_SYSTEM` | `row_version` | exclusión estructural | no aplica al payload genérico |
+| `DENY_SYSTEM` | `updated_at` | exclusión estructural | no aplica al payload genérico |
+
+###### 22.3.5 `ACTO_ENTREGA_RECEPCION`
+
+| Clasificación | Campo | Motivo | Ruta |
+|---|---|---|---|
+| `ALLOW_GENERIC` | `Columna` | atributo funcional autorizado | `guarded_update` |
+| `DENY_GENERIC` | `codigo` | `IDENTIDAD` | `DEDICATED_IDENTITY_CONTRACT` |
+| `DENY_GENERIC` | `fecha_acto` | `TEMPORAL` | `TEMPORAL_DOMAIN_CONTRACT` |
+| `DENY_PK` | `acto_er_id` | exclusión estructural | no aplica al payload genérico |
+| `DENY_RELATION` | `estado_er_id` | exclusión estructural | no aplica al payload genérico |
+| `DENY_RELATION` | `periodo_er_id` | exclusión estructural | no aplica al payload genérico |
+| `DENY_SYSTEM` | `created_at` | exclusión estructural | no aplica al payload genérico |
+| `DENY_SYSTEM` | `row_version` | exclusión estructural | no aplica al payload genérico |
+| `DENY_SYSTEM` | `updated_at` | exclusión estructural | no aplica al payload genérico |
+
+###### 22.3.6 `OBJETO_REVISION`
+
+| Clasificación | Campo | Motivo | Ruta |
+|---|---|---|---|
+| `ALLOW_GENERIC` | `Columna` | atributo funcional autorizado | `guarded_update` |
+| `ALLOW_GENERIC` | `descripcion` | atributo funcional autorizado | `guarded_update` |
+| `ALLOW_GENERIC` | `tipo_objeto` | atributo funcional autorizado | `guarded_update` |
+| `DENY_GENERIC` | `codigo` | `IDENTIDAD` | `DEDICATED_IDENTITY_CONTRACT` |
+| `DENY_PK` | `objeto_revision_id` | exclusión estructural | no aplica al payload genérico |
+| `DENY_RELATION` | `acto_er_id` | exclusión estructural | no aplica al payload genérico |
+| `DENY_RELATION` | `unidad_id` | exclusión estructural | no aplica al payload genérico |
+| `DENY_SYSTEM` | `created_at` | exclusión estructural | no aplica al payload genérico |
+| `DENY_SYSTEM` | `row_version` | exclusión estructural | no aplica al payload genérico |
+| `DENY_SYSTEM` | `updated_at` | exclusión estructural | no aplica al payload genérico |
+
+###### 22.3.7 `ROL_FUNCIONAL`
+
+| Clasificación | Campo | Motivo | Ruta |
+|---|---|---|---|
+| `ALLOW_GENERIC` | `Columna` | atributo funcional autorizado | `guarded_update` |
+| `ALLOW_GENERIC` | `descripcion` | atributo funcional autorizado | `guarded_update` |
+| `ALLOW_GENERIC` | `nombre` | atributo funcional autorizado | `guarded_update` |
+| `DENY_GENERIC` | `activo` | `ESTADO_WORKFLOW` | `STATE_TRANSITION_CONTRACT` |
+| `DENY_GENERIC` | `codigo` | `IDENTIDAD` | `DEDICATED_IDENTITY_CONTRACT` |
+| `DENY_PK` | `rol_id` | exclusión estructural | no aplica al payload genérico |
+| `DENY_SYSTEM` | `created_at` | exclusión estructural | no aplica al payload genérico |
+| `DENY_SYSTEM` | `row_version` | exclusión estructural | no aplica al payload genérico |
+| `DENY_SYSTEM` | `updated_at` | exclusión estructural | no aplica al payload genérico |
+
+###### 22.3.8 `CAPACIDAD_FUNCIONAL`
+
+| Clasificación | Campo | Motivo | Ruta |
+|---|---|---|---|
+| `ALLOW_GENERIC` | `Columna` | atributo funcional autorizado | `guarded_update` |
+| `ALLOW_GENERIC` | `condicionada` | atributo funcional autorizado | `guarded_update` |
+| `ALLOW_GENERIC` | `descripcion` | atributo funcional autorizado | `guarded_update` |
+| `ALLOW_GENERIC` | `nombre` | atributo funcional autorizado | `guarded_update` |
+| `DENY_GENERIC` | `activo` | `ESTADO_WORKFLOW` | `STATE_TRANSITION_CONTRACT` |
+| `DENY_GENERIC` | `codigo` | `IDENTIDAD` | `DEDICATED_IDENTITY_CONTRACT` |
+| `DENY_PK` | `capacidad_id` | exclusión estructural | no aplica al payload genérico |
+| `DENY_SYSTEM` | `created_at` | exclusión estructural | no aplica al payload genérico |
+| `DENY_SYSTEM` | `row_version` | exclusión estructural | no aplica al payload genérico |
+| `DENY_SYSTEM` | `updated_at` | exclusión estructural | no aplica al payload genérico |
+
+###### 22.3.9 `ASIGNACION_FUNCIONAL`
+
+| Clasificación | Campo | Motivo | Ruta |
+|---|---|---|---|
+| `ALLOW_GENERIC` | `Columna` | atributo funcional autorizado | `guarded_update` |
+| `ALLOW_GENERIC` | `revocada_at` | atributo funcional autorizado | `guarded_update` |
+| `DENY_GENERIC` | `vigente_desde` | `ESTADO_WORKFLOW,TEMPORAL` | `STATE_TRANSITION_CONTRACT,TEMPORAL_DOMAIN_CONTRACT` |
+| `DENY_GENERIC` | `vigente_hasta` | `ESTADO_WORKFLOW,TEMPORAL` | `STATE_TRANSITION_CONTRACT,TEMPORAL_DOMAIN_CONTRACT` |
+| `DENY_PK` | `asignacion_id` | exclusión estructural | no aplica al payload genérico |
+| `DENY_RELATION` | `actor_id` | exclusión estructural | no aplica al payload genérico |
+| `DENY_RELATION` | `periodo_er_id` | exclusión estructural | no aplica al payload genérico |
+| `DENY_RELATION` | `rol_id` | exclusión estructural | no aplica al payload genérico |
+| `DENY_RELATION` | `unidad_id` | exclusión estructural | no aplica al payload genérico |
+| `DENY_SYSTEM` | `created_at` | exclusión estructural | no aplica al payload genérico |
+| `DENY_SYSTEM` | `row_version` | exclusión estructural | no aplica al payload genérico |
+
+###### 22.3.10 `CONTROL`
+
+| Clasificación | Campo | Motivo | Ruta |
+|---|---|---|---|
+| `ALLOW_GENERIC` | `Columna` | atributo funcional autorizado | `guarded_update` |
+| `ALLOW_GENERIC` | `descripcion` | atributo funcional autorizado | `guarded_update` |
+| `ALLOW_GENERIC` | `nombre` | atributo funcional autorizado | `guarded_update` |
+| `ALLOW_GENERIC` | `tipo_control` | atributo funcional autorizado | `guarded_update` |
+| `DENY_GENERIC` | `activo` | `ESTADO_WORKFLOW` | `STATE_TRANSITION_CONTRACT` |
+| `DENY_GENERIC` | `codigo` | `IDENTIDAD` | `DEDICATED_IDENTITY_CONTRACT` |
+| `DENY_PK` | `control_id` | exclusión estructural | no aplica al payload genérico |
+| `DENY_RELATION` | `periodo_er_id` | exclusión estructural | no aplica al payload genérico |
+| `DENY_SYSTEM` | `created_at` | exclusión estructural | no aplica al payload genérico |
+| `DENY_SYSTEM` | `row_version` | exclusión estructural | no aplica al payload genérico |
+| `DENY_SYSTEM` | `updated_at` | exclusión estructural | no aplica al payload genérico |
+
+###### 22.3.11 `EVIDENCIA`
+
+| Clasificación | Campo | Motivo | Ruta |
+|---|---|---|---|
+| `ALLOW_GENERIC` | `Columna` | atributo funcional autorizado | `guarded_update` |
+| `ALLOW_GENERIC` | `descripcion` | atributo funcional autorizado | `guarded_update` |
+| `ALLOW_GENERIC` | `mime_type` | atributo funcional autorizado | `guarded_update` |
+| `ALLOW_GENERIC` | `nombre` | atributo funcional autorizado | `guarded_update` |
+| `ALLOW_GENERIC` | `storage_locator` | atributo funcional autorizado | `guarded_update` |
+| `ALLOW_GENERIC` | `tamano_bytes` | atributo funcional autorizado | `guarded_update` |
+| `ALLOW_GENERIC` | `tipo_evidencia` | atributo funcional autorizado | `guarded_update` |
+| `DENY_GENERIC` | `content_hash` | `SEGURIDAD_TRAZA` | `SECURITY_TRACE_CONTRACT` |
+| `DENY_PK` | `evidencia_id` | exclusión estructural | no aplica al payload genérico |
+| `DENY_RELATION` | `actor_incorpora_id` | exclusión estructural | no aplica al payload genérico |
+| `DENY_RELATION` | `periodo_er_id` | exclusión estructural | no aplica al payload genérico |
+| `DENY_SYSTEM` | `created_at` | exclusión estructural | no aplica al payload genérico |
+| `DENY_SYSTEM` | `row_version` | exclusión estructural | no aplica al payload genérico |
+
+###### 22.3.12 `DISCREPANCIA`
+
+| Clasificación | Campo | Motivo | Ruta |
+|---|---|---|---|
+| `ALLOW_GENERIC` | `Columna` | atributo funcional autorizado | `guarded_update` |
+| `ALLOW_GENERIC` | `descripcion` | atributo funcional autorizado | `guarded_update` |
+| `DENY_GENERIC` | `codigo` | `IDENTIDAD` | `DEDICATED_IDENTITY_CONTRACT` |
+| `DENY_PK` | `discrepancia_id` | exclusión estructural | no aplica al payload genérico |
+| `DENY_RELATION` | `acto_er_id` | exclusión estructural | no aplica al payload genérico |
+| `DENY_RELATION` | `estado_dis_id` | exclusión estructural | no aplica al payload genérico |
+| `DENY_RELATION` | `objeto_revision_id` | exclusión estructural | no aplica al payload genérico |
+| `DENY_SYSTEM` | `created_at` | exclusión estructural | no aplica al payload genérico |
+| `DENY_SYSTEM` | `row_version` | exclusión estructural | no aplica al payload genérico |
+| `DENY_SYSTEM` | `updated_at` | exclusión estructural | no aplica al payload genérico |
+
+##### 22.4 Contratos especializados
+
+| Clasificación semántica | Contrato especializado | Regla |
+|---|---|---|
+| `IDENTIDAD` | `DEDICATED_IDENTITY_CONTRACT` | requiere contrato específico de identidad |
+| `ESTADO_WORKFLOW` | `STATE_TRANSITION_CONTRACT` | requiere transición explícita de dominio |
+| `TEMPORAL` | `TEMPORAL_DOMAIN_CONTRACT` | requiere validación de coherencia temporal |
+| `ORDEN_SECUENCIA` | `SEQUENCE_RULE_CONTRACT` | requiere reglas expresas de orden y consecutividad |
+| `SEGURIDAD_TRAZA` | `SECURITY_TRACE_CONTRACT` | requiere mecanismo dedicado y privilegios explícitos |
+| `DERIVADO_CALCULADO` | `SYSTEM_DERIVED_CONTRACT` | permanece bajo control sistémico |
+
+##### 22.5 Reglas del contrato genérico
+
+1. `target_entity` pertenece exclusivamente al catálogo cerrado 12/12.
+2. Sólo campos `ALLOW_GENERIC` pueden aparecer en el payload.
+3. PK, FK, restricciones UQ protegidas, `created_at`, `updated_at` y `row_version` quedan fuera del control directo del payload genérico.
+4. Todo campo `DENY_GENERIC` requiere, si procede su mutación, un contrato especializado acreditado.
+5. Un atributo desconocido o no permitido produce `VALIDATION_ERROR`.
+6. La ausencia de un atributo en el payload significa no modificación.
+7. RLS se evalúa independientemente de la allowlist.
+8. `VERSION_CONFLICT` no modifica estado persistente.
+9. `NOT_FOUND_OR_NOT_VISIBLE` conserva semántica no enumerativa.
+10. `EVENTO_TRAZABILIDAD` no puede alcanzarse mediante `guarded_update`.
+11. Cualquier modificación confirmada conserva atomicidad.
+
+##### 22.6 Invariantes canónicos
+
+- `G01 target_entity pertenece al catálogo cerrado 12/12`
+- `G02 sólo ALLOW_GENERIC puede aparecer en payload`
+- `G03 PK permanece fuera del payload`
+- `G04 FK permanece fuera del payload genérico`
+- `G05 UQ estructural protegido permanece fuera del payload genérico`
+- `G06 created_at permanece fuera del payload`
+- `G07 updated_at permanece fuera del control directo del cliente`
+- `G08 row_version permanece fuera del payload`
+- `G09 REVIEW_REQUIRED permanece fuera de guarded_update`
+- `G10 atributo desconocido produce VALIDATION_ERROR`
+- `G11 ausencia de atributo no constituye modificación`
+- `G12 RLS se evalúa independientemente de la allowlist`
+- `G13 VERSION_CONFLICT no modifica estado`
+- `G14 NOT_FOUND_OR_NOT_VISIBLE no enumera filas protegidas`
+- `G15 EVENTO_TRAZABILIDAD permanece fuera de target_entity`
+- `G16 cualquier mutación confirmada permanece atómica`
+
+##### 22.7 Frontera de seguridad
+
+La allowlist controla únicamente la superficie de atributos potencialmente mutables. No concede visibilidad de filas, no concede autorización de modificación y no sustituye RLS.
+
+`NOT_FOUND_OR_NOT_VISIBLE` debe conservar un único resultado externo cuando el contexto efectivo de seguridad impida distinguir entre inexistencia y no visibilidad.
+
+##### 22.8 Trazabilidad
+
+`EVENTO_TRAZABILIDAD` mantiene contrato causal e histórico independiente. No pertenece al catálogo `target_entity`, no constituye token de concurrencia y no sustituye `row_version`.
+
+##### 22.9 Frontera de implementación
+
+Este gate fija únicamente autoridad documental. No materializa funciones PostgreSQL, triggers, políticas RLS, migraciones, privilegios, índices ni operaciones DML.
+
+La firma SQL física, los tipos PostgreSQL definitivos, la estrategia `SECURITY INVOKER`/`SECURITY DEFINER`, las políticas RLS concretas, el contrato RPC/HTTP, la migración ejecutable y las pruebas concurrentes reales permanecen gobernadamente diferidos.
+
+##### 22.10 Resultado de decisión
+
+Queda establecido como contrato canónico que `guarded_update` opera bajo `default-deny`, sobre un catálogo cerrado de 12 entidades, con 33 campos `ALLOW_GENERIC` y 22 campos `DENY_GENERIC` remitidos a contratos especializados.
+
+La implementación ejecutable continuará diferida hasta que los gates posteriores acrediten firma física, seguridad, RLS, routing, migración y pruebas transaccionales.
