@@ -2941,6 +2941,46 @@ Adicionalmente incorpora:
 
 `SPECIALIZED_CONTRACT_REJECTED` representa un rechazo semántico del contrato especializado y no produce modificación persistente, incremento de `row_version` ni cambio de `updated_at`.
 
+###### 22.4.1.9.1 Contrato canónico documental de retorno
+
+El routing especializado deberá exponer un resultado lógico tabular estable de **ocho campos**. Esta definición constituye **autoridad documental** de interfaz y no materializa todavía función PostgreSQL, `RETURNS TABLE`, tipo compuesto, trigger, política RLS, privilegio, migración ni operación DML.
+
+| Orden | Campo | Tipo PostgreSQL objetivo | Nulabilidad | Semántica canónica |
+|---:|---|---|---|---|
+| 1 | `status` | `text` | `NOT NULL` | Resultado público perteneciente exclusivamente a la taxonomía canónica cerrada. |
+| 2 | `target_entity` | `text` | `NULLABLE` | Identificador lógico de la entidad objetivo cuando su exposición sea semánticamente segura. |
+| 3 | `primary_key` | `jsonb` | `NULLABLE` | Identidad lógica de la fila; su exposición no puede degradar RLS ni permitir enumeración. |
+| 4 | `row_version` | `integer` | `NULLABLE` | Versión persistente posterior únicamente cuando proceda conforme al contrato de concurrencia optimista. |
+| 5 | `updated_at` | `timestamptz` | `NULLABLE` | Instante de modificación confirmado únicamente cuando la entidad posea autoridad física para dicho campo. |
+| 6 | `event_id` | `uuid` | `NULLABLE` | Identificador de evento únicamente cuando exista evento trazable materializado y su exposición sea autorizada. |
+| 7 | `error_code` | `text` | `NULLABLE` | Código público mínimo cerrado para resultados de error; debe ser `NULL` en `UPDATED`. |
+| 8 | `error_detail` | `jsonb` | `NULLABLE` | Detalle estructurado permitido; nunca podrá revelar SQL interno, stack traces, filas ocultas ni información que degrade RLS. |
+
+La taxonomía pública del campo `status` queda limitada a:
+
+- `UPDATED`;
+- `VERSION_CONFLICT`;
+- `NOT_FOUND_OR_NOT_VISIBLE`;
+- `VALIDATION_ERROR`;
+- `SPECIALIZED_CONTRACT_REJECTED`.
+
+Reglas semánticas del resultado:
+
+1. `UPDATED` representa una mutación atómica confirmada.
+2. `UPDATED` podrá devolver `row_version` posterior a la mutación y `updated_at` únicamente cuando exista autoridad física acreditada.
+3. `UPDATED` deberá devolver `error_code = NULL` y `error_detail = NULL`.
+4. `VERSION_CONFLICT` no modifica estado persistente, no aplica *last-write-wins* y no incrementa `row_version`.
+5. `NOT_FOUND_OR_NOT_VISIBLE` conserva semántica no enumerativa y no permitirá inferir si una fila existe pero resulta invisible por RLS.
+6. `VALIDATION_ERROR` no modifica estado persistente.
+7. `SPECIALIZED_CONTRACT_REJECTED` no modifica estado persistente y no habilita *fallback* hacia otro contrato.
+8. Ningún resultado de error podrá producir éxito parcial.
+9. `row_version` permanece tipado físicamente como `integer`; `bigint` queda expresamente excluido de este contrato.
+10. `security_context` no forma parte del resultado público ni concede autoridad autónoma.
+11. RLS y `default-deny` permanecen independientes del routing especializado.
+12. La estructura física definitiva de `error_detail`, la función PostgreSQL ejecutable, sus políticas RLS, `GRANT`/`REVOKE`, migración, rollback y pruebas transaccionales permanecen diferidos a gates posteriores.
+
+**Frontera de implementación de S19B.** Este bloque materializa exclusivamente el contrato documental de retorno. No autoriza SQL, DDL, DML, modificaciones de `schema.sql`, funciones, triggers, políticas RLS, privilegios ni cambios en Supabase.
+
 ###### 22.4.1.10 Invariantes del routing especializado
 
 1. todo `DENY_GENERIC` deberá resolver a contrato especializado;
