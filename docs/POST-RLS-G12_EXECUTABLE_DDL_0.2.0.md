@@ -2767,6 +2767,232 @@ La clasificación `DENY_GENERIC` significa exclusión del contrato genérico y n
 | `SEGURIDAD_TRAZA` | `SECURITY_TRACE_CONTRACT` | requiere mecanismo dedicado y privilegios explícitos |
 | `DERIVADO_CALCULADO` | `SYSTEM_DERIVED_CONTRACT` | permanece bajo control sistémico |
 
+##### 22.4.1 Contrato canónico de routing especializado
+
+El routing especializado constituye la capa de resolución obligatoria para los atributos clasificados como `DENY_GENERIC`. Su función es impedir que campos con semántica de identidad, transición de estado, temporalidad, trazabilidad de seguridad, orden secuencial o derivación sistémica puedan ser tratados como atributos escalares ordinarios dentro de `guarded_update`.
+
+La clasificación `DENY_GENERIC` no implica necesariamente inmutabilidad global. Significa que el atributo queda excluido del contrato genérico y que cualquier mutación válida deberá resolverse mediante uno o más contratos especializados expresamente acreditados.
+
+El catálogo contractual canónico queda cerrado en seis contratos:
+
+| Dominio semántico | Contrato especializado | Asignaciones B09 | Estado |
+|---|---|---:|---|
+| `IDENTIDAD` | `DEDICATED_IDENTITY_CONTRACT` | 10 | activo |
+| `ESTADO_WORKFLOW` | `STATE_TRANSITION_CONTRACT` | 8 | activo |
+| `TEMPORAL` | `TEMPORAL_DOMAIN_CONTRACT` | 5 | activo |
+| `SEGURIDAD_TRAZA` | `SECURITY_TRACE_CONTRACT` | 1 | activo |
+| `ORDEN_SECUENCIA` | `SEQUENCE_RULE_CONTRACT` | 0 | definido sin asignaciones |
+| `DERIVADO_CALCULADO` | `SYSTEM_DERIVED_CONTRACT` | 0 | definido sin asignaciones |
+
+Existen **22 campos `DENY_GENERIC`** y **24 asignaciones contractuales**, debido a que dos campos poseen composición multirruta.
+
+###### 22.4.1.1 Precondiciones comunes
+
+Toda operación especializada deberá satisfacer simultáneamente las siguientes precondiciones:
+
+1. `target_entity` pertenece al catálogo cerrado de doce entidades.
+2. `primary_key` identifica una fila dentro de `target_entity`.
+3. `expected_row_version` corresponde a la versión previamente observada por el llamador.
+4. el atributo solicitado está clasificado como `DENY_GENERIC`;
+5. el atributo posee al menos una ruta especializada acreditada;
+6. el `security_context` efectivo gobierna autenticación, autorización y visibilidad;
+7. RLS se evalúa independientemente del routing especializado;
+8. `row_version` continúa siendo el único token de concurrencia;
+9. `EVENTO_TRAZABILIDAD` permanece fuera del catálogo `target_entity`;
+10. cualquier rechazo impide toda modificación persistente.
+
+###### 22.4.1.2 `DEDICATED_IDENTITY_CONTRACT`
+
+Este contrato gobierna los atributos clasificados bajo el dominio `IDENTIDAD`.
+
+Su superficie acreditada comprende exactamente **10 asignaciones**, correspondientes a atributos de identidad lógica cuya mutación no puede ejecutarse mediante `guarded_update`.
+
+Reglas:
+
+- toda mutación de identidad requiere contrato dedicado;
+- la identidad lógica no puede transformarse en nombre físico de tabla controlado por cliente;
+- la modificación deberá respetar unicidad, identidad y restricciones estructurales aplicables;
+- RLS y `row_version` permanecen obligatorios;
+- un rechazo de autorización no produce modificación;
+- la resolución física de la entidad deberá realizarse mediante binding estático o mecanismo equivalente bajo control de implementación.
+
+Resultados admisibles:
+
+- `UPDATED`;
+- `VERSION_CONFLICT`;
+- `NOT_FOUND_OR_NOT_VISIBLE`;
+- `VALIDATION_ERROR`;
+- `SPECIALIZED_CONTRACT_REJECTED`.
+
+###### 22.4.1.3 `STATE_TRANSITION_CONTRACT`
+
+Este contrato gobierna atributos pertenecientes al dominio `ESTADO_WORKFLOW`.
+
+Su superficie acreditada comprende exactamente **8 asignaciones**.
+
+Reglas:
+
+- el valor persistido representa el estado de origen;
+- el valor solicitado representa el estado de destino;
+- la transición origen-destino deberá estar expresamente autorizada;
+- una transición inválida no produce modificación;
+- un estado de workflow no puede tratarse como atributo escalar libre;
+- RLS y `row_version` permanecen obligatorios;
+- no existe éxito parcial.
+
+Cuando un mismo atributo esté sometido simultáneamente a reglas temporales, `STATE_TRANSITION_CONTRACT` deberá componerse mediante AND lógico con `TEMPORAL_DOMAIN_CONTRACT`.
+
+###### 22.4.1.4 `TEMPORAL_DOMAIN_CONTRACT`
+
+Este contrato gobierna los atributos pertenecientes al dominio `TEMPORAL`.
+
+Su superficie acreditada comprende exactamente **5 asignaciones**.
+
+Reglas:
+
+- toda fecha, intervalo o periodo deberá satisfacer coherencia temporal de dominio;
+- la validación temporal no sustituye la validación de transición de estado;
+- cuando exista relación inicio-fin, deberán preservarse orden, coherencia y restricciones temporales aplicables;
+- una condición temporal inválida no modifica estado;
+- RLS y `row_version` permanecen obligatorios.
+
+La composición multirruta canónica queda establecida para:
+
+- `ASIGNACION_FUNCIONAL.vigente_desde`;
+- `ASIGNACION_FUNCIONAL.vigente_hasta`.
+
+En ambos casos:
+
+`STATE_TRANSITION_CONTRACT AND TEMPORAL_DOMAIN_CONTRACT`
+
+Los dos contratos deberán aprobar para que exista una mutación confirmada.
+
+###### 22.4.1.5 `SECURITY_TRACE_CONTRACT`
+
+Este contrato gobierna el dominio `SEGURIDAD_TRAZA`.
+
+Su superficie acreditada comprende exactamente **1 asignación**:
+
+- `EVIDENCIA.content_hash`.
+
+Reglas:
+
+- `content_hash` queda excluido de `guarded_update`;
+- cualquier mutación futura requerirá contrato dedicado;
+- la operación no podrá degradar integridad, autenticidad ni trazabilidad;
+- `EVENTO_TRAZABILIDAD` conserva responsabilidad causal e histórica independiente;
+- RLS y `row_version` permanecen obligatorios.
+
+###### 22.4.1.6 Contratos definidos sin asignaciones B09
+
+`SEQUENCE_RULE_CONTRACT` permanece definido para el dominio `ORDEN_SECUENCIA`.
+
+`SYSTEM_DERIVED_CONTRACT` permanece definido para el dominio `DERIVADO_CALCULADO`.
+
+La ausencia de asignaciones B09 no elimina estos contratos de la taxonomía ni autoriza superficie mutable implícita. Toda futura asignación deberá ser objeto de un gate documental específico.
+
+###### 22.4.1.7 Composición contractual
+
+Cuando un atributo esté sometido a más de un contrato especializado:
+
+1. la composición utiliza **AND lógico**;
+2. todos los contratos aplicables deben aprobar;
+3. ninguna precedencia puede omitir una restricción aplicable;
+4. no existe fallback entre contratos;
+5. no existe bypass por orden de evaluación;
+6. no existe éxito parcial;
+7. cualquier fallo provoca rollback integral;
+8. `row_version` sólo avanza después de una modificación confirmada;
+9. `updated_at` sólo cambia cuando existe autoridad física acreditada;
+10. `VERSION_CONFLICT` conserva estado persistente;
+11. `NOT_FOUND_OR_NOT_VISIBLE` conserva semántica no enumerativa;
+12. RLS no puede degradarse para resolver routing;
+13. `EVENTO_TRAZABILIDAD` no sustituye el control de concurrencia.
+
+###### 22.4.1.8 Pipeline lógico canónico
+
+El flujo abstracto queda definido en el siguiente orden:
+
+1. validar `target_entity`;
+2. resolver `primary_key` bajo `security_context` efectivo;
+3. verificar visibilidad y autorización RLS;
+4. verificar `expected_row_version`;
+5. clasificar el atributo solicitado;
+6. resolver una o más rutas especializadas;
+7. evaluar todos los contratos aplicables;
+8. rechazar la operación si cualquiera falla;
+9. aplicar la modificación funcional autorizada;
+10. incrementar `row_version` exactamente `N -> N + 1`;
+11. actualizar `updated_at` únicamente cuando exista autoridad física;
+12. confirmar la operación de manera atómica.
+
+###### 22.4.1.9 Taxonomía de resultados
+
+El routing especializado conserva los resultados comunes:
+
+- `UPDATED`;
+- `VERSION_CONFLICT`;
+- `NOT_FOUND_OR_NOT_VISIBLE`;
+- `VALIDATION_ERROR`.
+
+Adicionalmente incorpora:
+
+- `SPECIALIZED_CONTRACT_REJECTED`.
+
+`SPECIALIZED_CONTRACT_REJECTED` representa un rechazo semántico del contrato especializado y no produce modificación persistente, incremento de `row_version` ni cambio de `updated_at`.
+
+###### 22.4.1.10 Invariantes del routing especializado
+
+1. todo `DENY_GENERIC` deberá resolver a contrato especializado;
+2. ningún `ALLOW_GENERIC` requiere routing especializado B09;
+3. un contrato especializado no sustituye RLS;
+4. un contrato especializado no sustituye `row_version`;
+5. la composición multirruta utiliza AND lógico;
+6. el fallo de cualquier componente impide commit;
+7. no existe éxito parcial;
+8. no existe fallback entre contratos;
+9. no existe bypass por orden de evaluación;
+10. `default-deny` permanece vigente;
+11. `EVENTO_TRAZABILIDAD` permanece fuera de `target_entity`;
+12. `VERSION_CONFLICT` conserva estado persistente;
+13. `NOT_FOUND_OR_NOT_VISIBLE` conserva semántica no enumerativa;
+14. `VALIDATION_ERROR` no modifica estado;
+15. `SPECIALIZED_CONTRACT_REJECTED` no modifica estado;
+16. toda mutación confirmada conserva atomicidad;
+17. `row_version` sólo avanza tras éxito confirmado;
+18. `updated_at` permanece subordinado a autoridad física;
+19. contratos sin asignaciones permanecen disponibles en la taxonomía;
+20. firma SQL, tipos PostgreSQL, políticas RLS concretas y pruebas transaccionales reales permanecen diferidas.
+
+###### 22.4.1.11 Frontera de implementación
+
+Este bloque fija exclusivamente autoridad documental.
+
+No materializa:
+
+- funciones PostgreSQL;
+- triggers;
+- políticas RLS;
+- `ENABLE ROW LEVEL SECURITY`;
+- privilegios `GRANT` o `REVOKE`;
+- migraciones;
+- índices;
+- operaciones DML;
+- contrato RPC/HTTP;
+- pruebas concurrentes reales.
+
+La firma SQL física, los tipos PostgreSQL definitivos, la estrategia `SECURITY INVOKER`/`SECURITY DEFINER`, las políticas RLS concretas, la migración ejecutable, el rollback físico y las pruebas transaccionales deberán acreditarse en gates posteriores antes de autorizar implementación.
+
+###### 22.4.1.12 Resultado de decisión
+
+Queda establecido como contrato canónico que los **22 campos `DENY_GENERIC`** se enrutan mediante **24 asignaciones especializadas**, distribuidas en una taxonomía contractual **10/8/5/1**, con dos contratos adicionales definidos sin asignaciones actuales.
+
+La composición multirruta se limita actualmente a `ASIGNACION_FUNCIONAL.vigente_desde` y `ASIGNACION_FUNCIONAL.vigente_hasta`, ambas bajo composición `STATE_TRANSITION_CONTRACT AND TEMPORAL_DOMAIN_CONTRACT`.
+
+Se preservan `default-deny`, RLS, `row_version`, atomicidad, semántica no enumerativa y separación causal de `EVENTO_TRAZABILIDAD`.
+
+La materialización ejecutable continúa diferida.
+
 ##### 22.5 Reglas del contrato genérico
 
 1. `target_entity` pertenece exclusivamente al catálogo cerrado 12/12.
