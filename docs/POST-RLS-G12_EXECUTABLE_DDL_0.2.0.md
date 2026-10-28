@@ -2981,6 +2981,18 @@ Reglas semánticas del resultado:
 
 **Frontera de implementación de S19B.** Este bloque materializa exclusivamente el contrato documental de retorno. No autoriza SQL, DDL, DML, modificaciones de `schema.sql`, funciones, triggers, políticas RLS, privilegios ni cambios en Supabase.
 
+###### 22.4.1.9.2 Firma física canónica de `guarded_update`
+
+La interfaz documental de `guarded_update` adopta como firma física objetivo la siguiente forma lógica:
+
+```text
+guarded_update(
+    target_entity text,
+    primary_key jsonb,
+    expected_row_version integer,
+    payload jsonb
+)
+
 ###### 22.4.1.10 Invariantes del routing especializado
 
 1. todo `DENY_GENERIC` deberá resolver a contrato especializado;
