@@ -3067,6 +3067,42 @@ La resolución física de nombres observará las siguientes reglas:
 
 **Resultado de decisión S21C.** Queda acreditado como contrato canónico que la implementación física futura de `catu.guarded_update` utilizará resolución explícita de objetos de aplicación y un `search_path` restringido, preservando la autoridad `SECURITY INVOKER` acreditada en S21B. La materialización ejecutable continúa diferida.
 
+###### 22.4.1.9.6 Política canónica de privilegios de ejecución de `guarded_update`
+
+La futura función física `catu.guarded_update` operará bajo una política explícita de privilegios basada en **default-deny**. La existencia de la función no concederá por sí misma autoridad de ejecución a sujetos genéricos o implícitos.
+
+La política canónica queda sometida a las siguientes reglas:
+
+1. `PUBLIC` no constituye sujeto autorizado de ejecución para `catu.guarded_update`.
+2. La materialización ejecutable futura deberá retirar cualquier privilegio implícito o heredado de ejecución concedido a `PUBLIC`.
+3. Ningún privilegio positivo `EXECUTE` queda acreditado en este gate para `authenticated`, `anon`, `service_role`, `postgres` ni para cualquier otro rol.
+4. El sujeto runtime autorizado deberá identificarse y acreditarse expresamente en un gate posterior antes de materializar cualquier `GRANT EXECUTE`.
+5. La identidad del sujeto runtime deberá corresponder a un principal de aplicación inequívoco y gobernado; no podrá inferirse exclusivamente de convenciones de plataforma.
+6. `service_role` permanece excluido como credencial de cliente o navegador y no adquiere autoridad de ejecución por la sola existencia de dicha identidad técnica.
+7. La posesión futura de `EXECUTE` no sustituirá autorización de fila, RLS, `security_context`, `default-deny`, validación de `target_entity` ni los contratos especializados vigentes.
+8. `SECURITY INVOKER` permanece como autoridad canónica de ejecución; el privilegio `EXECUTE` únicamente habilitará invocación y no elevará privilegios del sujeto.
+9. La identidad del propietario de la función no podrá utilizarse como mecanismo implícito de elevación.
+10. Todo `GRANT EXECUTE` deberá acreditar previamente sujeto, alcance, necesidad funcional, mínimo privilegio y compatibilidad con RLS.
+11. Todo `REVOKE`, `GRANT`, ownership o política equivalente deberá materializarse exclusivamente mediante una migración ejecutable posterior y auditable.
+12. El rollback de privilegios deberá formar parte del mismo contrato de migración que materialice el cambio.
+13. La resolución definitiva del rol runtime constituye dependencia explícita del siguiente gate y permanece fuera del alcance de esta sección.
+
+**Contrato documental de privilegios.** La política física objetivo deberá ser semánticamente equivalente a:
+
+    PUBLIC            -> EXECUTE denegado
+    runtime principal -> pendiente de acreditación explícita
+    authenticated     -> no acreditado en este gate
+    anon              -> no acreditado en este gate
+    service_role      -> no acreditado para cliente/runtime
+    postgres          -> no acreditado como principal de aplicación
+    SECURITY INVOKER  -> preservado
+    RLS               -> obligatorio e independiente
+    default-deny      -> preservado
+
+La referencia anterior expresa únicamente autoridad documental. No constituye todavía sentencia `REVOKE`, `GRANT`, DDL, DML, modificación de `schema.sql`, creación de función ni cambio de privilegios en PostgreSQL/Supabase.
+
+**Resultado de decisión S21D.** Queda acreditado que la implementación física futura de `catu.guarded_update` deberá eliminar autoridad implícita de ejecución de `PUBLIC` y conceder `EXECUTE` únicamente a un principal runtime identificado y acreditado en un gate posterior. Hasta dicha acreditación no existe sujeto positivo canónico de ejecución y la materialización ejecutable continúa diferida.
+
 ###### 22.4.1.10 Invariantes del routing especializado
 
 1. todo `DENY_GENERIC` deberá resolver a contrato especializado;
