@@ -3023,6 +3023,31 @@ Los prefijos `p_` distinguen inequívocamente los parámetros de entrada de las 
 
 `LANGUAGE plpgsql` queda establecido como lenguaje físico objetivo. La presente definición continúa siendo autoridad documental: no crea función PostgreSQL, no ejecuta DDL, no modifica `schema.sql`, no altera políticas RLS y no realiza operaciones DML.
 
+###### 22.4.1.9.4 Autoridad de ejecución canónica de `guarded_update`
+
+La función física futura `guarded_update` deberá materializarse bajo semántica **`SECURITY INVOKER`**.
+
+Esta decisión preserva el principio de que la operación se ejecuta bajo los privilegios efectivos del sujeto invocante y no adquiere autoridad adicional por efecto de la propiedad de la función.
+
+La selección de `SECURITY INVOKER` mantiene las siguientes invariantes:
+
+1. RLS continúa siendo una autoridad independiente del contrato de mutabilidad;
+2. `default-deny` permanece vigente;
+3. `security_context` gobierna autenticación, autorización y visibilidad;
+4. la función no concede privilegios implícitos al llamador;
+5. la allowlist de campos no sustituye autorización de fila;
+6. `NOT_FOUND_OR_NOT_VISIBLE` conserva semántica no enumerativa;
+7. la identidad del propietario de la función no podrá utilizarse como mecanismo de elevación;
+8. la ejecución de `guarded_update` no podrá emplearse para eludir RLS;
+9. cualquier privilegio `EXECUTE` deberá acreditarse expresamente en un gate posterior;
+10. cualquier `GRANT` o `REVOKE` permanece diferido;
+11. el `search_path` físico y la resolución segura de objetos permanecen diferidos a un gate posterior;
+12. la implementación SQL ejecutable continúa prohibida en este gate.
+
+`SECURITY DEFINER` queda **excluido como autoridad canónica** para `guarded_update` en la baseline actual. Su adopción futura requeriría una nueva decisión arquitectónica explícita y evidencia que justifique la necesidad de elevación controlada, propietario seguro, `search_path` restringido, privilegios mínimos y comportamiento compatible con RLS.
+
+**Frontera de implementación de S21B.** La presente sección constituye exclusivamente autoridad documental. No crea ni reemplaza funciones PostgreSQL, no ejecuta DDL o DML, no modifica `schema.sql`, no crea políticas RLS, no concede privilegios y no introduce cambios en Supabase.
+
 ###### 22.4.1.10 Invariantes del routing especializado
 
 1. todo `DENY_GENERIC` deberá resolver a contrato especializado;
