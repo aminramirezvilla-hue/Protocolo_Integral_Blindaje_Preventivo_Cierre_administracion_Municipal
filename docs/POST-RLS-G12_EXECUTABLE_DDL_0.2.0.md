@@ -3048,6 +3048,25 @@ La selección de `SECURITY INVOKER` mantiene las siguientes invariantes:
 
 **Frontera de implementación de S21B.** La presente sección constituye exclusivamente autoridad documental. No crea ni reemplaza funciones PostgreSQL, no ejecuta DDL o DML, no modifica `schema.sql`, no crea políticas RLS, no concede privilegios y no introduce cambios en Supabase.
 
+###### 22.4.1.9.5 Política canónica de `search_path` y resolución segura de objetos de `guarded_update`
+
+La función física futura deberá materializarse en el esquema de aplicación `catu`; su identidad física canónica será `catu.guarded_update`. La denominación no calificada utilizada en 22.4.1.9.2–22.4.1.9.4 constituye abreviatura lógica y no autoriza resolución implícita de objetos mediante `search_path`.
+
+La resolución física de nombres observará las siguientes reglas:
+
+1. El `search_path` físico objetivo queda restringido a `pg_catalog`. No se autoriza incorporar `public`, `$user`, `pg_temp` ni ningún otro esquema no acreditado expresamente.
+2. Toda relación, tipo, secuencia o función de aplicación referenciada por `guarded_update` deberá utilizar nombre calificado bajo el esquema `catu` (`catu.<objeto>`).
+3. Toda función, tipo u objeto del sistema cuya resolución sea relevante para seguridad deberá resolverse explícitamente bajo `pg_catalog` cuando exista riesgo de ambigüedad; la implementación no dependerá de un orden de búsqueda mutable.
+4. La mera exclusión de `pg_temp` del `search_path` no constituye control suficiente: ninguna relación o tipo persistente de aplicación podrá resolverse por nombre no calificado.
+5. `target_entity` continúa perteneciendo al catálogo cerrado acreditado. Su valor no podrá concatenarse ni interpolarse como identificador SQL; la resolución de entidad deberá realizarse mediante binding estático, ramificación cerrada o mecanismo equivalente previamente acreditado.
+6. Este contrato no autoriza SQL dinámico para resolver `target_entity`. Cualquier necesidad futura de SQL dinámico requerirá un gate arquitectónico específico, con controles explícitos de inyección, allowlist y resolución de nombres.
+7. La política aquí definida preserva `SECURITY INVOKER`, `default-deny`, RLS y `security_context`. `search_path` no concede privilegios, no amplía visibilidad y no sustituye autorización de fila.
+8. Los privilegios `EXECUTE`, `GRANT` y `REVOKE` permanecen diferidos. La identidad del propietario de la función y cualquier cambio de ownership permanecen fuera de este gate.
+9. Si una dependencia futura exige un esquema distinto de `pg_catalog` o `catu`, deberá acreditarse documentalmente antes de incorporarse a la resolución física.
+10. La presente sección constituye exclusivamente autoridad documental. No crea ni reemplaza funciones PostgreSQL, no ejecuta DDL o DML, no modifica `schema.sql`, no crea políticas RLS, no concede privilegios y no introduce cambios en Supabase.
+
+**Resultado de decisión S21C.** Queda acreditado como contrato canónico que la implementación física futura de `catu.guarded_update` utilizará resolución explícita de objetos de aplicación y un `search_path` restringido, preservando la autoridad `SECURITY INVOKER` acreditada en S21B. La materialización ejecutable continúa diferida.
+
 ###### 22.4.1.10 Invariantes del routing especializado
 
 1. todo `DENY_GENERIC` deberá resolver a contrato especializado;
