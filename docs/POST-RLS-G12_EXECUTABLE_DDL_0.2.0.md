@@ -3103,6 +3103,58 @@ La referencia anterior expresa únicamente autoridad documental. No constituye t
 
 **Resultado de decisión S21D.** Queda acreditado que la implementación física futura de `catu.guarded_update` deberá eliminar autoridad implícita de ejecución de `PUBLIC` y conceder `EXECUTE` únicamente a un principal runtime identificado y acreditado en un gate posterior. Hasta dicha acreditación no existe sujeto positivo canónico de ejecución y la materialización ejecutable continúa diferida.
 
+###### 22.4.1.9.7 Principal runtime canónico de `guarded_update`
+
+La implementación física futura de `catu.guarded_update` deberá ejecutarse mediante un principal runtime dedicado, específico de aplicación, inequívoco y gobernado.
+
+La identidad lógica canónica del sujeto de ejecución queda establecida como:
+
+`CATU_GUARDED_UPDATE_RUNTIME_PRINCIPAL`
+
+Esta identidad constituye una autoridad documental lógica y no equivale todavía a un rol PostgreSQL materializado.
+
+El principal runtime canónico queda sujeto a las siguientes reglas:
+
+1. deberá ser un principal dedicado exclusivamente al contexto funcional acreditado para `catu.guarded_update`;
+2. deberá observar el principio de mínimo privilegio;
+3. `PUBLIC` no podrá constituir principal runtime canónico;
+4. `authenticated` y `anon` no quedan acreditados por esta sección;
+5. `service_role` permanece excluido como identidad canónica de cliente o runtime;
+6. `postgres` no podrá utilizarse como principal funcional ordinario de aplicación;
+7. la función permanecerá bajo semántica `SECURITY INVOKER`;
+8. RLS conservará autoridad independiente y obligatoria;
+9. `security_context` continuará gobernando autenticación, autorización y visibilidad;
+10. `default-deny` permanecerá como política de cierre;
+11. la existencia del principal no concederá por sí misma autorización de fila;
+12. la posesión futura de `EXECUTE` no sustituirá RLS, `security_context`, validación de `target_entity`, contratos especializados ni control de concurrencia;
+13. la identidad física PostgreSQL deberá acreditarse en un gate posterior antes de cualquier creación de rol;
+14. `LOGIN`/`NOLOGIN`, membership, mecanismo de asunción, JWT/PostgREST mapping, credenciales y conexión permanecen diferidos;
+15. ownership y cualquier cambio de propietario permanecen diferidos;
+16. todo `GRANT EXECUTE` deberá materializarse únicamente mediante migración posterior, explícita y auditable;
+17. todo `REVOKE` deberá formar parte del mismo contrato de migración que materialice los privilegios;
+18. ninguna credencial privilegiada podrá exponerse al navegador o cliente no confiable;
+19. la implementación futura deberá preservar `SECURITY INVOKER`, RLS, `default-deny` y `security_context`;
+20. cualquier desviación de esta identidad lógica requerirá un nuevo gate arquitectónico documental.
+
+**Propiedades físicas diferidas.** Permanecen expresamente no resueltas en este gate:
+
+- nombre PostgreSQL definitivo;
+- `LOGIN` o `NOLOGIN`;
+- membership y herencia;
+- JWT/PostgREST mapping;
+- mecanismo de conexión;
+- material de credenciales;
+- ownership;
+- `GRANT EXECUTE`;
+- `REVOKE`;
+- migración;
+- rollback.
+
+**Frontera de implementación de S21E.** La presente sección constituye exclusivamente autoridad documental. No crea roles PostgreSQL, no altera roles, no concede ni revoca privilegios, no modifica ownership, no ejecuta SQL, DDL o DML, no modifica `schema.sql` y no introduce cambios en Supabase.
+
+**Resultado de decisión S21E.** Queda establecido como principal runtime lógico canónico `CATU_GUARDED_UPDATE_RUNTIME_PRINCIPAL`. La identidad física PostgreSQL y su materialización ejecutable permanecen diferidas a gates posteriores.
+
+
 ###### 22.4.1.10 Invariantes del routing especializado
 
 1. todo `DENY_GENERIC` deberá resolver a contrato especializado;
