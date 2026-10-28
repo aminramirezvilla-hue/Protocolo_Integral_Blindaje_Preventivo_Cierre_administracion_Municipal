@@ -2993,6 +2993,36 @@ guarded_update(
     payload jsonb
 )
 
+###### 22.4.1.9.3 Contrato SQL físico objetivo de `guarded_update`
+
+La materialización física futura de `guarded_update` deberá preservar sin alteración la semántica acreditada por S19B y la firma lógica acreditada por S20.
+
+La firma PostgreSQL objetivo adopta un namespace físico diferenciado para los parámetros de entrada:
+
+```sql
+guarded_update(
+    p_target_entity text,
+    p_primary_key jsonb,
+    p_expected_row_version integer,
+    p_payload jsonb
+)
+RETURNS TABLE (
+    status text,
+    target_entity text,
+    primary_key jsonb,
+    row_version integer,
+    updated_at timestamptz,
+    event_id uuid,
+    error_code text,
+    error_detail jsonb
+)
+LANGUAGE plpgsql
+```
+
+Los prefijos `p_` distinguen inequívocamente los parámetros de entrada de las columnas del resultado tabular y de los identificadores físicos internos de la función.
+
+`LANGUAGE plpgsql` queda establecido como lenguaje físico objetivo. La presente definición continúa siendo autoridad documental: no crea función PostgreSQL, no ejecuta DDL, no modifica `schema.sql`, no altera políticas RLS y no realiza operaciones DML.
+
 ###### 22.4.1.10 Invariantes del routing especializado
 
 1. todo `DENY_GENERIC` deberá resolver a contrato especializado;
