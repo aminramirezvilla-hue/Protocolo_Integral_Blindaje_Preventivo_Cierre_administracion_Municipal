@@ -2,7 +2,6 @@
 -- NO se requiere para el piloto v0.1 local.
 -- Ejecutar únicamente en un proyecto Supabase controlado por CATU y después de revisión de RLS.
 
-create extension if not exists pgcrypto;
 
 create type public.catu_role as enum ('admin','coordinator','area','oic','catu');
 
@@ -80,19 +79,25 @@ alter table public.evidence_refs enable row level security;
 alter table public.audit_log enable row level security;
 
 create or replace function public.is_workspace_member(w uuid)
-returns boolean language sql stable security definer set search_path = public as $$
+returns boolean language sql stable security definer set search_path = '' as $$
   select exists(
     select 1 from public.workspace_members m
     where m.workspace_id=w and m.user_id=auth.uid() and m.active=true
   );
 $$;
 
+revoke execute on function public.is_workspace_member(uuid) from public, anon, authenticated;
+grant execute on function public.is_workspace_member(uuid) to authenticated;
+
 create or replace function public.workspace_role(w uuid)
-returns public.catu_role language sql stable security definer set search_path = public as $$
+returns public.catu_role language sql stable security definer set search_path = '' as $$
   select m.role from public.workspace_members m
   where m.workspace_id=w and m.user_id=auth.uid() and m.active=true
   limit 1;
 $$;
+
+revoke execute on function public.workspace_role(uuid) from public, anon, authenticated;
+grant execute on function public.workspace_role(uuid) to authenticated;
 
 create policy "members read workspaces"
 on public.workspaces for select
